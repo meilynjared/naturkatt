@@ -2,14 +2,17 @@
 
 import Image from 'next/image'
 import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Minus, Plus, ShieldCheck, Trash2, Truck, X } from 'lucide-react'
 import { useCart } from './cart-provider'
 import { FREE_SHIPPING_THRESHOLD } from '@/lib/catalog'
-import { buildOrderMessage, describeItem } from '@/lib/order'
-import { formatCLP, whatsappLink } from '@/lib/store'
+import { savePendingCheckout, toPendingLines } from '@/lib/checkout-storage'
+import { describeItem } from '@/lib/order'
+import { formatCLP } from '@/lib/store'
 
 export function CartDrawer() {
   const { items, total, isOpen, close, updateQuantity, remove } = useCart()
+  const router = useRouter()
 
   useEffect(() => {
     if (!isOpen) return
@@ -128,17 +131,20 @@ export function CartDrawer() {
                 <span>Total</span>
                 <span className="font-semibold tabular-nums">{formatCLP(total)}</span>
               </div>
-              <a
-                href={whatsappLink(buildOrderMessage(items))}
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                type="button"
+                onClick={() => {
+                  savePendingCheckout(toPendingLines(items))
+                  close()
+                  router.push('/checkout')
+                }}
                 className="flex items-center justify-center rounded-full bg-cta px-6 py-3.5 font-semibold text-cta-foreground transition hover:brightness-110"
               >
-                Confirmar pedido por WhatsApp
-              </a>
+                Ir a pagar
+              </button>
               <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
                 <ShieldCheck className="size-3.5" aria-hidden />
-                Pago 100% seguro · Gloria confirma tu pedido personalmente
+                Pago 100% seguro con Webpay · Gloria prepara tu pedido personalmente
               </p>
             </footer>
           </>

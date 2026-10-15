@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Gift, Minus, Plus, ShoppingBag, Zap } from 'lucide-react'
 import { GIFT_WRAP_PRICE, type Product } from '@/lib/catalog'
-import { buildOrderMessage, unitPriceFor, type CartItem } from '@/lib/order'
-import { formatCLP, whatsappLink } from '@/lib/store'
+import { savePendingCheckout, toPendingLines } from '@/lib/checkout-storage'
+import { unitPriceFor, type CartItem } from '@/lib/order'
+import { formatCLP } from '@/lib/store'
 import { cn } from '@/lib/utils'
 import { useCart } from './cart-provider'
 import { TrustSeals } from './trust-seals'
@@ -13,6 +15,7 @@ const MAX_QUANTITY = 10
 
 export function ProductConfigurator({ product }: { product: Product }) {
   const { add } = useCart()
+  const router = useRouter()
   const [selections, setSelections] = useState<Record<string, string>>(() =>
     Object.fromEntries(product.options.map((o) => [o.id, o.values[0].label])),
   )
@@ -32,13 +35,14 @@ export function ProductConfigurator({ product }: { product: Product }) {
     selections: Object.fromEntries(
       product.options.map((o) => [o.id, `${o.name}: ${selections[o.id]}`]),
     ),
+    choices: selections,
     giftWrap,
     giftMessage: giftWrap ? giftMessage.trim() : '',
   }
 
   const buyNow = () => {
-    const message = buildOrderMessage([{ ...item, key: product.slug }])
-    window.open(whatsappLink(message), '_blank', 'noopener,noreferrer')
+    savePendingCheckout(toPendingLines([item]))
+    router.push('/checkout')
   }
 
   return (
@@ -165,7 +169,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
         </button>
       </div>
       <p className="-mt-3 text-xs text-muted-foreground">
-        Tu pedido llega directo al WhatsApp de Gloria, quien lo confirma en minutos. Sin registros ni formularios.
+        Pagas con Webpay (débito, crédito o prepago) sin crear cuenta. Tus datos de entrega quedan guardados para tu próxima compra en 1 clic.
       </p>
 
       <TrustSeals compact />
