@@ -1,0 +1,76 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-foreground: var(--foreground);
+  --color-background: var(--background);
+  --color-cta: var(--cta);
+  --color-cta-foreground: var(--cta-foreground);
+  --color-whatsapp: var(--whatsapp);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: #faf6ee;
+  --foreground: #1f2a22;
+  --card: #ffffff;
+  --card-foreground: #1f2a22;
+  --popover: #ffffff;
+  --popover-foreground: #1f2a22;
+  --primary: #2f5d3a;
+  --primary-foreground: #faf6ee;
+  --secondary: #e7efe4;
+  --secondary-foreground: #2f5d3a;
+  --muted: #f0e9db;
+  --muted-foreground: #5c665e;
+  --accent: #f6e3d3;
+  --accent-foreground: #8a3a12;
+  --destructive: #b42318;
+  --border: #e3dccd;
+  --input: #d9d1c0;
+  --ring: #2f5d3a;
+  --cta: #b9501a;
+  --cta-foreground: #ffffff;
+  --whatsapp: #1f8f4e;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    scroll-behavior: smooth;
+    --float-offset: 0px;
+  }
+  html:has([data-buy-bar]) {
+    --float-offset: 5.5rem;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+}
