@@ -61,7 +61,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
                   key={value.label}
                   className={cn(
                     'flex cursor-pointer items-center gap-2 rounded-full border-2 px-4 py-2 text-sm transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring',
-                    active ? 'border-primary bg-secondary font-semibold text-primary' : 'border-border bg-card hover:border-primary/40',
+                    active ? 'border-primary bg-secondary font-semibold text-primary-ink' : 'border-border bg-card hover:border-primary/40',
                   )}
                 >
                   <input
@@ -98,9 +98,9 @@ export function ProductConfigurator({ product }: { product: Product }) {
             type="checkbox"
             checked={giftWrap}
             onChange={(e) => setGiftWrap(e.target.checked)}
-            className="size-5 accent-[var(--primary)]"
+            className="size-5 accent-[var(--primary-ink)]"
           />
-          <Gift className="size-5 text-primary" aria-hidden />
+          <Gift className="size-5 text-primary-ink" aria-hidden />
           <span className="flex-1 text-sm font-semibold">Envoltorio de regalo con tarjeta</span>
           <span className="text-sm text-muted-foreground">{`+${formatCLP(GIFT_WRAP_PRICE)}`}</span>
         </label>
@@ -164,7 +164,7 @@ export function ProductConfigurator({ product }: { product: Product }) {
         <button
           type="button"
           onClick={() => add(item)}
-          className="flex items-center justify-center gap-2 rounded-full border-2 border-primary px-6 py-3.5 font-semibold text-primary transition hover:bg-secondary"
+          className="flex items-center justify-center gap-2 rounded-full border-2 border-primary px-6 py-3.5 font-semibold text-primary-ink transition hover:bg-secondary"
         >
           <ShoppingBag className="size-5" aria-hidden />
           Agregar al carrito

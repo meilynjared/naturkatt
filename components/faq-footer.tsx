@@ -1,4 +1,4 @@
-import { Leaf } from 'lucide-react'
+import { LotusIcon } from './lotus-logo'
 import { CITY, OWNER_EMAIL, OWNER_NAME, WHATSAPP_DISPLAY, whatsappLink } from '@/lib/store'
 
 const faqs = [
@@ -30,7 +30,7 @@ export function Faq() {
             <summary className="cursor-pointer list-none font-semibold marker:hidden">
               <span className="flex items-center justify-between gap-4">
                 {f.q}
-                <span className="text-xl text-primary transition group-open:rotate-45" aria-hidden>
+                <span className="text-xl text-primary-ink transition group-open:rotate-45" aria-hidden>
                   +
                 </span>
               </span>
@@ -46,11 +46,11 @@ export function Faq() {
 export function SiteFooter() {
   return (
     <footer className="border-t bg-muted">
-      <div className="mx-auto max-w-6xl px-4 pt-10 pb-[calc(var(--float-offset)+9rem)]">
+      <div className="mx-auto max-w-6xl px-4 pt-10 pb-[calc(var(--float-offset)+8.5rem)] lg:pb-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <Leaf className="size-5" aria-hidden />
+            <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <LotusIcon id="pie" className="size-8" />
             </span>
             <div>
               <p className="font-serif text-lg font-semibold">NaturKatt</p>
@@ -72,14 +72,17 @@ export function SiteFooter() {
             </p>
           </address>
         </div>
-        <div className="mt-8 flex flex-col gap-1 border-t pt-6 text-center text-muted-foreground">
-          <p className="text-sm">
-            © 2026 NaturKatt. Tus datos se tratan conforme a la Ley 19.628 y Ley 21.719 de Protección de Datos
-            Personales.
-          </p>
-          <p className="text-xs">
-            NaturKatt es el emprendimiento de una consultora independiente; no es un sitio oficial de Natura.
-          </p>
+        <div className="mt-8 border-t pt-6">
+          {/* Ancho acotado para que el texto no quede detrás de los botones flotantes de Flor y WhatsApp. */}
+          <div className="mx-auto flex max-w-3xl flex-col gap-1 text-center text-muted-foreground">
+            <p className="text-sm">
+              © 2026 NaturKatt. Tus datos se tratan conforme a la Ley 19.628 y Ley 21.719 de Protección de Datos
+              Personales.
+            </p>
+            <p className="text-xs">
+              NaturKatt es el emprendimiento de una consultora independiente; no es un sitio oficial de Natura.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

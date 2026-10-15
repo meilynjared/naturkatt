@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Leaf, ShoppingBag } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
+import { LotusIcon } from './lotus-logo'
 import { useCart } from './cart-provider'
 
 const nav = [
@@ -20,8 +21,8 @@ export function SiteHeader() {
       </div>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Leaf className="size-5" aria-hidden />
+          <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <LotusIcon id="encabezado" className="size-8" />
           </span>
           <span className="flex flex-col leading-none">
             <span className="font-serif text-xl font-semibold tracking-tight">NaturKatt</span>

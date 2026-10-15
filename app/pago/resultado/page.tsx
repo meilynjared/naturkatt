@@ -40,7 +40,7 @@ async function resolveOutcome(params: Record<string, string | string[] | undefin
 }
 
 const COPY = {
-  approved: { icon: CircleCheck, tone: 'text-primary', title: '¡Pago aprobado!', text: 'Gloria ya puede preparar tu pedido.' },
+  approved: { icon: CircleCheck, tone: 'text-primary-ink', title: '¡Pago aprobado!', text: 'Gloria ya puede preparar tu pedido.' },
   rejected: {
     icon: CircleX,
     tone: 'text-destructive',
@@ -124,7 +124,7 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
             <Link href="/checkout" className="rounded-full bg-cta px-6 py-3 font-semibold text-cta-foreground">
               Intentar pagar de nuevo
             </Link>
-            <Link href="/" className="text-sm text-primary underline underline-offset-4">
+            <Link href="/" className="text-sm text-primary-ink underline underline-offset-4">
               Volver a la tienda
             </Link>
           </div>

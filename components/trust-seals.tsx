@@ -18,7 +18,7 @@ export function TrustSeals({ compact = false }: { compact?: boolean }) {
             compact ? 'p-3' : 'p-5',
           )}
         >
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-secondary text-primary-ink">
             <Icon className="size-5" aria-hidden />
           </span>
           <span className="flex flex-col">

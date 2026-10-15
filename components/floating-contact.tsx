@@ -30,7 +30,7 @@ export function FloatingContact() {
             href={whatsappLink('¡Hola Gloria! Vengo de NaturKatt y tengo una consulta.')}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex size-14 items-center justify-center rounded-full bg-whatsapp text-white shadow-lg transition hover:brightness-110"
+            className="flex size-14 items-center justify-center rounded-full bg-whatsapp text-whatsapp-foreground shadow-lg transition hover:brightness-110"
             aria-label="Escribir por WhatsApp a Gloria"
           >
             <MessageCircle className="size-7" aria-hidden />
