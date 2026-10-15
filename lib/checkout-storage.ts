@@ -1,6 +1,6 @@
 'use client'
 
-import type { CartItem, CheckoutCustomer, OrderLineInput, PricedLine } from './order'
+import type { CartItem, CheckoutCustomer, OrderLineInput, OrderShipping, PricedLine } from './order'
 
 /** Productos que la clienta va a pagar (se guardan solo en esta pestaña del navegador). */
 const PENDING_KEY = 'naturkatt:checkout'
@@ -14,6 +14,9 @@ export type PendingLine = OrderLineInput & { name: string; image: string; detail
 export type LastOrder = {
   buyOrder: string
   lines: PricedLine[]
+  /** Productos sin envío (los pedidos guardados antes de cobrar el envío no lo tienen). */
+  subtotal?: number
+  shipping?: OrderShipping | null
   total: number
   customer: CheckoutCustomer
 }
