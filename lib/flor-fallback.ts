@@ -56,7 +56,7 @@ export function florFallbackReply(rawText: string): string {
 
   if (has(t, 'envio', 'envia', 'despacho', 'demora', 'llega', 'entrega', 'courier', 'region', 'santiago', 'antofagasta', 'fuera de iquique')) {
     return [
-      `En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis en compras sobre ${formatCLP(FREE_SHIPPING_THRESHOLD)}.`,
+      `En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis en compras sobre ${formatCLP(FREE_SHIPPING_THRESHOLD)}. Bajo ese monto, el envío se calcula al pagar según la distancia desde el local en Alto Hospicio (desde $1.500).`,
       'Al resto de Chile enviamos por courier en 2 a 5 días hábiles con seguimiento; Gloria te confirma el costo según tu comuna.',
       '¿Quieres que te recomiende algo?',
     ].join('\n')

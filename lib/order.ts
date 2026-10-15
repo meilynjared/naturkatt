@@ -1,4 +1,5 @@
-import { FREE_SHIPPING_THRESHOLD, GIFT_WRAP_PRICE, getProduct, type Product } from './catalog'
+import { GIFT_WRAP_PRICE, getProduct, type Product } from './catalog'
+import { formatKm, googleMapsLink, isLocalCity, type DeliveryLocation, type ShippingQuote } from './shipping'
 import { formatCLP } from './store'
 
 export type CartItem = {
@@ -87,13 +88,6 @@ export function priceOrder(input: unknown): { lines: PricedLine[]; total: number
 export const DELIVERY_CITIES = ['Iquique', 'Alto Hospicio', 'Otra ciudad'] as const
 export type DeliveryCity = (typeof DELIVERY_CITIES)[number]
 
-/** El envío no se cobra en Webpay: es gratis en Iquique y Alto Hospicio sobre el mínimo, y en los demás casos lo coordina Gloria. */
-export function shippingLabel(total: number, city: DeliveryCity) {
-  if (city !== 'Otra ciudad' && total >= FREE_SHIPPING_THRESHOLD) return 'Gratis'
-  if (city !== 'Otra ciudad') return 'Por pagar al recibir (Gloria te confirma el valor)'
-  return 'Por pagar al recibir, por courier (Gloria te confirma el valor)'
-}
-
 export type CheckoutCustomer = {
   name: string
   phone: string
@@ -101,6 +95,18 @@ export type CheckoutCustomer = {
   city: DeliveryCity
   otherCity: string
   notes: string
+  /** Punto de entrega verificado en el mapa. */
+  location: DeliveryLocation | null
+}
+
+/** Envío cobrado junto al pedido (solo Iquique y Alto Hospicio). */
+export type OrderShipping = Pick<ShippingQuote, 'fee' | 'km' | 'method' | 'free' | 'outsideArea'>
+
+export function shippingLine(city: DeliveryCity, shipping?: OrderShipping | null) {
+  if (!isLocalCity(city)) return 'Por courier: Gloria te confirma el valor'
+  if (!shipping) return 'Se calcula con tu dirección'
+  if (shipping.outsideArea) return 'Fuera de la zona de reparto: Gloria te confirma el valor'
+  return `${shipping.free ? 'Gratis' : formatCLP(shipping.fee)} (${formatKm(shipping.km)} desde el local)`
 }
 
 /** Mensaje para avisarle a Gloria de un pedido ya pagado con Webpay. */
@@ -110,8 +116,9 @@ export function buildPaidOrderMessage(params: {
   lines: PricedLine[]
   total: number
   customer: CheckoutCustomer
+  shipping?: OrderShipping | null
 }) {
-  const { buyOrder, authorizationCode, lines, total, customer } = params
+  const { buyOrder, authorizationCode, lines, total, customer, shipping } = params
   const items = lines.map((l) => {
     const card = l.giftMessage ? `\n   Tarjeta: "${l.giftMessage}"` : ''
     return `• ${l.quantity} x ${l.name} (${l.detail}) — ${formatCLP(l.lineTotal)}${card}`
@@ -122,11 +129,13 @@ export function buildPaidOrderMessage(params: {
     '',
     `Orden de compra: ${buyOrder}${authorizationCode ? ` · Autorización: ${authorizationCode}` : ''}`,
     ...items,
+    `Envío: ${shippingLine(customer.city, shipping)}`,
     `Total pagado: ${formatCLP(total)}`,
     '',
     `Nombre: ${customer.name}`,
     `Teléfono: ${customer.phone}`,
     `Dirección: ${customer.address}, ${city}`,
+    customer.location ? `Ubicación en el mapa: ${googleMapsLink(customer.location.lat, customer.location.lon)}` : '',
     customer.notes ? `Indicaciones: ${customer.notes}` : '',
   ]
     .filter((line, i, all) => line !== '' || all[i - 1] !== '')

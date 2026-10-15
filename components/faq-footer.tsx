@@ -8,7 +8,7 @@ const faqs = [
   },
   {
     q: '¿Cuánto demora el envío?',
-    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000. Al resto de Chile enviamos por courier en 2 a 5 días hábiles con número de seguimiento.',
+    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000; bajo ese monto, el envío se calcula al pagar según la distancia desde el local en Alto Hospicio (desde $1.500). Al resto de Chile enviamos por courier en 2 a 5 días hábiles con número de seguimiento.',
   },
   {
     q: '¿Puedo devolver un producto?',
