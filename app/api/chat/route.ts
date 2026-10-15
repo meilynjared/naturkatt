@@ -5,13 +5,25 @@ import {
   generateText,
   type UIMessage,
 } from 'ai'
+import { google } from '@ai-sdk/google'
 import { products } from '@/lib/catalog'
 import { florFallbackReply } from '@/lib/flor-fallback'
 import { buildFlorInstructions } from '@/lib/flor-prompt'
 
 export const maxDuration = 30
 
-const MODEL = process.env.FLOR_MODEL || 'google/gemini-3.8-flash'
+/**
+ * Modelo de IA de Flor:
+ * - Si existe GOOGLE_GENERATIVE_AI_API_KEY (clave gratuita de Google AI Studio), usa Gemini directamente con esa clave.
+ * - Si no, usa el AI Gateway de Vercel (requiere créditos del AI Gateway para este modelo).
+ * - Si el modelo no responde, Flor contesta con las respuestas de respaldo de lib/flor-fallback.ts.
+ */
+function florModel() {
+  if (process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    return google(process.env.FLOR_GOOGLE_MODEL || 'gemini-flash-latest')
+  }
+  return process.env.FLOR_MODEL || 'google/gemini-3.8-flash'
+}
 
 const instructions = buildFlorInstructions(
   products.map((p) => ({
@@ -44,7 +56,7 @@ export async function POST(req: Request) {
       let reply = ''
       try {
         const result = await generateText({
-          model: MODEL,
+          model: florModel(),
           instructions,
           messages: await convertToModelMessages(messages.slice(-MAX_MESSAGES)),
           abortSignal: AbortSignal.timeout(20_000),
