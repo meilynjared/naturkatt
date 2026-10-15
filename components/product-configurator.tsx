@@ -81,7 +81,9 @@ export function ProductConfigurator({ product }: { product: Product }) {
                   )}
                   {value.label}
                   {value.priceDelta ? (
-                    <span className="text-xs text-muted-foreground">{`+${formatCLP(value.priceDelta)}`}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {`${value.priceDelta > 0 ? '+' : '−'}${formatCLP(Math.abs(value.priceDelta))}`}
+                    </span>
                   ) : null}
                 </label>
               )
