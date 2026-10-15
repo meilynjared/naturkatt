@@ -2,9 +2,9 @@ import { RotateCcw, ShieldCheck, Truck } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const seals = [
-  { icon: ShieldCheck, title: 'Pago 100% seguro', text: 'Webpay, transferencia o efectivo contra entrega' },
+  { icon: ShieldCheck, title: 'Pago 100% seguro', text: 'Webpay, transferencia o efectivo al recibir tu pedido' },
   { icon: RotateCcw, title: 'Devoluciones gratuitas en 30 días', text: 'Si no te encanta, lo cambiamos o reembolsamos' },
-  { icon: Truck, title: 'Envío rápido', text: '24 h en Iquique · 2 a 5 días hábiles a todo Chile' },
+  { icon: Truck, title: 'Envío rápido', text: '24 h en Iquique y Alto Hospicio · 2 a 5 días hábiles al resto de Tarapacá' },
 ]
 
 export function TrustSeals({ compact = false }: { compact?: boolean }) {

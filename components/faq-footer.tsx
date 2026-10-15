@@ -4,11 +4,11 @@ import { CITY, OWNER_NAME, WHATSAPP_DISPLAY, whatsappLink } from '@/lib/store'
 const faqs = [
   {
     q: '¿Cómo pago mi pedido?',
-    a: 'Puedes pagar por transferencia bancaria, con tarjeta de débito o crédito mediante link de pago seguro, o en efectivo contra entrega en Iquique y Alto Hospicio. Nunca te pediremos datos de tu tarjeta por chat.',
+    a: 'Puedes pagar con Webpay (débito, crédito o prepago) directamente en la tienda, en el sitio seguro de Transbank. Si prefieres, coordinas con Gloria el pago por transferencia bancaria o en efectivo al recibir tu pedido en Iquique y Alto Hospicio. Nunca te pediremos datos de tu tarjeta por chat.',
   },
   {
     q: '¿Cuánto demora el envío?',
-    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000; bajo ese monto, el envío se calcula al pagar según la distancia desde el local en Alto Hospicio (desde $1.500). Al resto de Chile enviamos por courier en 2 a 5 días hábiles con número de seguimiento.',
+    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000; bajo ese monto, el envío se calcula al pagar según la distancia desde el local en Alto Hospicio (desde $1.500). Al resto de la Región de Tarapacá (Pozo Almonte, Huara, Pica, Camiña y Colchane) enviamos por courier en 2 a 5 días hábiles con número de seguimiento, desde $5.990 según la distancia.',
   },
   {
     q: '¿Puedo devolver un producto?',

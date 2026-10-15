@@ -1,4 +1,4 @@
-import { estimatedRoadKm, SERVICE_AREA, STORE_LOCATION, type DeliveryLocation, type RouteQuote } from './shipping'
+import { COMMUNES, estimatedRoadKm, REGION_AREA, STORE_LOCATION, type DeliveryLocation, type RouteQuote } from './shipping'
 
 /**
  * Búsqueda de direcciones y distancias con servicios gratuitos de OpenStreetMap (no requieren clave ni tarjeta):
@@ -64,25 +64,32 @@ type NominatimItem = {
   address?: Record<string, string>
 }
 
+/** Comuna de Tarapacá a la que pertenece el resultado, si el buscador la informa (en pueblos pequeños a veces no viene). */
 function communeOf(address: Record<string, string> = {}) {
-  return address.city || address.town || address.village || address.municipality || address.county || ''
+  for (const value of [address.city, address.town, address.village, address.municipality]) {
+    const match = value && COMMUNES.find((c) => normalize(c) === normalize(value))
+    if (match) return match
+  }
+  return ''
+}
+
+function placeOf(address: Record<string, string> = {}) {
+  return address.city || address.town || address.village || address.hamlet || address.municipality || ''
 }
 
 function shortLabel(address: Record<string, string> = {}, fallback: string) {
   const street = address.road || address.pedestrian || address.footway || address.residential || ''
-  const parts = [street && address.house_number ? `${street} ${address.house_number}` : street, address.suburb || address.neighbourhood, communeOf(address)]
+  const parts = [street && address.house_number ? `${street} ${address.house_number}` : street, address.suburb || address.neighbourhood, placeOf(address)]
   const label = parts.filter(Boolean).join(', ')
   return label || fallback.split(',').slice(0, 3).join(',')
 }
 
-async function nominatim(street: string, city: string, local: boolean): Promise<GeocodeResult[]> {
+async function nominatim(street: string, city: string): Promise<GeocodeResult[]> {
   const base = 'https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=cl'
-  const area = local
-    ? `&viewbox=${SERVICE_AREA.west},${SERVICE_AREA.north},${SERVICE_AREA.east},${SERVICE_AREA.south}&bounded=1`
-    : ''
+  const area = `&viewbox=${REGION_AREA.west},${REGION_AREA.north},${REGION_AREA.east},${REGION_AREA.south}&bounded=1`
   const attempts = [
     `${base}${area}&street=${encodeURIComponent(street)}&city=${encodeURIComponent(city)}`,
-    `${base}${area}&q=${encodeURIComponent(`${street}, ${city}, Chile`)}`,
+    `${base}${area}&q=${encodeURIComponent(`${street}, ${city}, Tarapacá, Chile`)}`,
   ]
   for (const url of attempts) {
     await politeDelay()
@@ -105,8 +112,8 @@ type PhotonFeature = {
   properties: Record<string, string>
 }
 
-async function photon(street: string, city: string, local: boolean): Promise<GeocodeResult[]> {
-  const bbox = local ? `&bbox=${SERVICE_AREA.west},${SERVICE_AREA.south},${SERVICE_AREA.east},${SERVICE_AREA.north}` : ''
+async function photon(street: string, city: string): Promise<GeocodeResult[]> {
+  const bbox = `&bbox=${REGION_AREA.west},${REGION_AREA.south},${REGION_AREA.east},${REGION_AREA.north}`
   const data = (await getJson(
     `https://photon.komoot.io/api/?limit=5${bbox}&q=${encodeURIComponent(`${street}, ${city}, Chile`)}`,
   )) as { features: PhotonFeature[] }
@@ -115,19 +122,20 @@ async function photon(street: string, city: string, local: boolean): Promise<Geo
     .map((f) => {
       const p = f.properties
       const streetName = p.street || p.name || ''
-      const commune = p.city || p.county || p.locality || ''
+      const place = p.city || p.locality || p.county || ''
+      const commune = COMMUNES.find((c) => [p.city, p.locality, p.county].some((v) => v && normalize(v) === normalize(c))) ?? ''
       return {
         lon: f.geometry.coordinates[0],
         lat: f.geometry.coordinates[1],
-        label: [p.housenumber ? `${streetName} ${p.housenumber}` : streetName, p.district, commune].filter(Boolean).join(', '),
+        label: [p.housenumber ? `${streetName} ${p.housenumber}` : streetName, p.district, place].filter(Boolean).join(', '),
         commune,
         precision: p.housenumber ? 'exacta' : 'calle',
       }
     })
 }
 
-/** Busca la dirección en la comuna elegida. */
-export async function geocodeAddress(address: string, city: string, local: boolean): Promise<GeocodeOutcome> {
+/** Busca la dirección en la comuna elegida, dentro de la Región de Tarapacá. */
+export async function geocodeAddress(address: string, city: string): Promise<GeocodeOutcome> {
   const street = streetPart(address)
   const key = `geo:${normalize(street)}|${normalize(city)}`
   if (cache.has(key)) return cache.get(key) as GeocodeOutcome
@@ -135,7 +143,7 @@ export async function geocodeAddress(address: string, city: string, local: boole
   let results: GeocodeResult[] | null = null
   for (const provider of [nominatim, photon]) {
     try {
-      results = await provider(street, city, local)
+      results = await provider(street, city)
       if (results.length > 0) break
     } catch (error) {
       console.error('Buscador de direcciones no disponible', error)
@@ -144,12 +152,12 @@ export async function geocodeAddress(address: string, city: string, local: boole
   if (results === null) return { status: 'sin-servicio' } // no se guarda en caché: puede ser una caída momentánea
   if (results.length === 0) return remember(key, { status: 'no-encontrada' } as GeocodeOutcome)
 
-  // Se prefiere un resultado en la comuna elegida y, dentro de ella, uno con el número de la casa.
-  const sameCommune = results.filter((r) => normalize(r.commune) === normalize(city))
+  // Se prefiere un resultado en la comuna elegida (o sin comuna informada) y, dentro de ellos, uno con el número de la casa.
+  // Solo se avisa "otra comuna" si el buscador dice claramente que la dirección está en otra comuna de Tarapacá.
+  const sameCommune = results.filter((r) => !r.commune || normalize(r.commune) === normalize(city))
   const pool = sameCommune.length > 0 ? sameCommune : results
   const best = pool.find((r) => r.precision === 'exacta') ?? pool[0]
-  const outcome: GeocodeOutcome =
-    !local || sameCommune.length > 0 || !best.commune ? { status: 'ok', result: best } : { status: 'otra-comuna', result: best }
+  const outcome: GeocodeOutcome = sameCommune.length > 0 ? { status: 'ok', result: best } : { status: 'otra-comuna', result: best }
   return remember(key, outcome)
 }
 

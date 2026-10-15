@@ -5,7 +5,7 @@ import { OWNER_NAME, WHATSAPP_DISPLAY, whatsappLink } from '@/lib/store'
 const steps = [
   { n: '1', title: 'Elige', text: 'Explora los kits o deja que Flor te recomiende según tu piel o la persona a quien regalas.' },
   { n: '2', title: 'Compra en 1 clic', text: 'Personaliza, presiona comprar y paga seguro con Webpay. Tus datos quedan guardados para la próxima vez.' },
-  { n: '3', title: 'Recibe', text: 'Me envías el comprobante por WhatsApp y lo entrego en 24 h en Iquique o envío a todo Chile.' },
+  { n: '3', title: 'Recibe', text: 'Me envías el comprobante por WhatsApp y lo entrego en 24 h en Iquique y Alto Hospicio o lo envío al resto de Tarapacá.' },
 ]
 
 export function AboutGloria() {

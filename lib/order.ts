@@ -1,5 +1,5 @@
 import { GIFT_WRAP_PRICE, getProduct, type Product } from './catalog'
-import { formatKm, googleMapsLink, isLocalCity, type DeliveryLocation, type ShippingQuote } from './shipping'
+import { COMMUNES, DELIVERY_TIME, formatKm, googleMapsLink, type Commune, type DeliveryLocation, type ShippingQuote } from './shipping'
 import { formatCLP } from './store'
 
 export type CartItem = {
@@ -85,28 +85,28 @@ export function priceOrder(input: unknown): { lines: PricedLine[]; total: number
   return { lines, total: lines.reduce((sum, l) => sum + l.lineTotal, 0) }
 }
 
-export const DELIVERY_CITIES = ['Iquique', 'Alto Hospicio', 'Otra ciudad'] as const
-export type DeliveryCity = (typeof DELIVERY_CITIES)[number]
+/** Solo se envía dentro de la Región de Tarapacá. */
+export const DELIVERY_CITIES = COMMUNES
+export type DeliveryCity = Commune
 
 export type CheckoutCustomer = {
   name: string
   phone: string
   address: string
   city: DeliveryCity
-  otherCity: string
   notes: string
   /** Punto de entrega verificado en el mapa. */
   location: DeliveryLocation | null
 }
 
-/** Envío cobrado junto al pedido (solo Iquique y Alto Hospicio). */
-export type OrderShipping = Pick<ShippingQuote, 'fee' | 'km' | 'method' | 'free' | 'outsideArea'>
+/** Envío cobrado junto al pedido. */
+export type OrderShipping = Pick<ShippingQuote, 'fee' | 'km' | 'method' | 'free' | 'outsideArea' | 'carrier'>
 
-export function shippingLine(city: DeliveryCity, shipping?: OrderShipping | null) {
-  if (!isLocalCity(city)) return 'Por courier: Gloria te confirma el valor'
-  if (!shipping) return 'Se calcula con tu dirección'
-  if (shipping.outsideArea) return 'Fuera de la zona de reparto: Gloria te confirma el valor'
-  return `${shipping.free ? 'Gratis' : formatCLP(shipping.fee)} (${formatKm(shipping.km)} desde el local)`
+export function shippingLine(shipping?: OrderShipping | null) {
+  if (!shipping) return 'Por coordinar con Gloria'
+  if (shipping.outsideArea) return 'Fuera de la zona de envío: Gloria te confirma el valor'
+  const how = shipping.carrier ? ` · ${DELIVERY_TIME[shipping.carrier]}` : ''
+  return `${shipping.free ? 'Gratis' : formatCLP(shipping.fee)} (${formatKm(shipping.km)} desde el local)${how}`
 }
 
 /** Mensaje para avisarle a Gloria de un pedido ya pagado con Webpay. */
@@ -123,18 +123,17 @@ export function buildPaidOrderMessage(params: {
     const card = l.giftMessage ? `\n   Tarjeta: "${l.giftMessage}"` : ''
     return `• ${l.quantity} x ${l.name} (${l.detail}) — ${formatCLP(l.lineTotal)}${card}`
   })
-  const city = customer.city === 'Otra ciudad' ? customer.otherCity : customer.city
   return [
     '¡Hola Gloria! Acabo de pagar con Webpay en NaturKatt.',
     '',
     `Orden de compra: ${buyOrder}${authorizationCode ? ` · Autorización: ${authorizationCode}` : ''}`,
     ...items,
-    `Envío: ${shippingLine(customer.city, shipping)}`,
+    `Envío: ${shippingLine(shipping)}`,
     `Total pagado: ${formatCLP(total)}`,
     '',
     `Nombre: ${customer.name}`,
     `Teléfono: ${customer.phone}`,
-    `Dirección: ${customer.address}, ${city}`,
+    `Dirección: ${customer.address}, ${customer.city}`,
     customer.location ? `Ubicación en el mapa: ${googleMapsLink(customer.location.lat, customer.location.lon)}` : '',
     customer.notes ? `Indicaciones: ${customer.notes}` : '',
   ]
