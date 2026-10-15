@@ -65,10 +65,15 @@ export function SiteFooter() {
             </a>
           </address>
         </div>
-        <p className="mt-8 border-t pt-6 text-center text-sm text-muted-foreground">
-          © 2026 NaturKatt. Tus datos se tratan conforme a la Ley 19.628 y Ley 21.719 de Protección de Datos
-          Personales.
-        </p>
+        <div className="mt-8 flex flex-col gap-1 border-t pt-6 text-center text-muted-foreground">
+          <p className="text-sm">
+            © 2026 NaturKatt. Tus datos se tratan conforme a la Ley 19.628 y Ley 21.719 de Protección de Datos
+            Personales.
+          </p>
+          <p className="text-xs">
+            NaturKatt es el emprendimiento de una consultora independiente; no es un sitio oficial de Natura.
+          </p>
+        </div>
       </div>
     </footer>
   )
