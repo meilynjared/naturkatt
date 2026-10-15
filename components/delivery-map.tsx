@@ -14,10 +14,13 @@ const PIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="44" 
 export function DeliveryMap({
   lat,
   lon,
+  zoom = 17,
   onMove,
 }: {
   lat: number
   lon: number
+  /** Zoom inicial: 17 para ver la casa, 15 para recorrer la comuna buscando la casa. */
+  zoom?: number
   onMove: (lat: number, lon: number) => void
 }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -31,8 +34,8 @@ export function DeliveryMap({
     ;(async () => {
       const L = (await import('leaflet')).default
       if (cancelled || !containerRef.current || mapRef.current) return
-      // En celulares el mapa no se arrastra con un dedo (para no atrapar el scroll de la página): se toca el lugar o se arrastra el pin.
-      const map = L.map(containerRef.current, { scrollWheelZoom: false, dragging: !L.Browser.mobile }).setView([lat, lon], 17)
+      // Se puede recorrer el mapa arrastrándolo (también con el dedo) para buscar la casa visualmente.
+      const map = L.map(containerRef.current, { scrollWheelZoom: false }).setView([lat, lon], zoom)
       map.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener">Leaflet</a>')
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
@@ -82,7 +85,7 @@ export function DeliveryMap({
     <div
       ref={containerRef}
       role="application"
-      aria-label="Mapa del punto de entrega. Arrastra el pin o toca el mapa para ajustarlo."
+      aria-label="Mapa del punto de entrega. Recorre el mapa y toca tu casa o arrastra el pin para marcarla."
       className="isolate h-64 w-full overflow-hidden rounded-xl border bg-muted sm:h-72"
     />
   )

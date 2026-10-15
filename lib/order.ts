@@ -110,7 +110,7 @@ export const PICKUP_SHIPPING: OrderShipping = { fee: 0, km: 0, method: 'ruta', f
 
 export function shippingLine(shipping?: OrderShipping | null) {
   if (!shipping) return 'Por coordinar con Gloria'
-  if (shipping.carrier === 'retiro') return `${PICKUP.title} (punto de retiro de Gloria)`
+  if (shipping.carrier === 'retiro') return `${PICKUP.title} (${PICKUP.address})`
   if (shipping.outsideArea) return 'Fuera de la zona de envío: Gloria te confirma el valor'
   const how = shipping.carrier ? ` · ${DELIVERY_TIME[shipping.carrier]}` : ''
   return `${shipping.free ? 'Gratis' : formatCLP(shipping.fee)} (${formatKm(shipping.km)} de recorrido)${how}`
@@ -143,7 +143,7 @@ export function buildPaidOrderMessage(params: {
     ...(shipping?.carrier === 'retiro'
       ? ['¿Qué día y a qué hora puedo pasar a retirar?']
       : [
-          `Dirección: ${customer.address}, ${customer.city}`,
+          `Dirección: ${customer.address.trim() || 'marcada en el mapa'}, ${customer.city}`,
           customer.location ? `Ubicación en el mapa: ${googleMapsLink(customer.location.lat, customer.location.lon)}` : '',
         ]),
     customer.notes ? `Indicaciones: ${customer.notes}` : '',

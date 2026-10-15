@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { CircleAlert, CircleCheck, CreditCard, ExternalLink, Loader2, Lock, Map as MapIcon, MapPin, MessageCircle, Store, Truck } from 'lucide-react'
+import { CircleAlert, CircleCheck, CreditCard, ExternalLink, Loader2, LocateFixed, Lock, Map as MapIcon, MapPin, MessageCircle, Store, Truck } from 'lucide-react'
 import { FREE_SHIPPING_THRESHOLD } from '@/lib/catalog'
 import {
   clearPendingCheckout,
@@ -20,6 +20,7 @@ import {
   DELIVERY_TIME,
   formatKm,
   googleMapsLink,
+  inRegion,
   isCommune,
   LOCAL_COMMUNES,
   PICKUP,
@@ -69,8 +70,9 @@ function validate(c: CheckoutCustomer): Errors {
   if (c.name.trim().length < 3) errors.name = 'Escribe tu nombre y apellido.'
   if (!isValidChileMobile(c.phone)) errors.phone = 'Escribe los 8 dígitos de tu celular: +56 9 1234 5678.'
   if (c.delivery === 'retiro') return errors
-  if (c.address.trim().length < 5) errors.address = 'Escribe calle, número y depto o casa.'
-  else if (!c.location) errors.address = 'Verifica tu dirección con el botón “Buscar en el mapa” para calcular el envío.'
+  const markedOnMap = c.location?.precision === 'manual'
+  if (c.address.trim().length < 5 && !markedOnMap) errors.address = 'Escribe calle, número y depto o casa, o marca tu casa en el mapa.'
+  else if (!c.location) errors.address = 'Busca tu dirección o márcala en el mapa para calcular el envío.'
   else if (c.location.precision === 'calle')
     errors.address = 'Confirma en el mapa el punto exacto de entrega.'
   return errors
@@ -88,6 +90,13 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
   const [mapOpen, setMapOpen] = useState(false)
   const [route, setRoute] = useState<RouteQuote | null>(null)
   const [routeLoading, setRouteLoading] = useState(false)
+  const [mapZoom, setMapZoom] = useState(17)
+  const [pointInfo, setPointInfo] = useState<'idle' | 'buscando' | 'ok' | 'sin-calle' | 'fuera' | 'error'>('idle')
+  const [locating, setLocating] = useState(false)
+  const [locateError, setLocateError] = useState('')
+  const reverseSeq = useRef(0)
+  /** La dirección escrita la sugirió el mapa (se puede reemplazar al mover el pin). */
+  const addressFromMap = useRef(false)
   const formRef = useRef<HTMLFormElement>(null)
   const lastSearch = useRef('')
 
@@ -176,6 +185,8 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
     setGeo({ kind: 'idle' })
     setServerError('')
     setMapOpen(false)
+    setPointInfo('idle')
+    setLocateError('')
     lastSearch.current = ''
   }
 
@@ -200,6 +211,8 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
         const { lat, lon, label, precision } = data.result
         setCustomer((c) => ({ ...c, location: { lat, lon, label, precision } }))
         setGeo({ kind: 'encontrada' })
+        setPointInfo('idle')
+        setMapZoom(17)
         setMapOpen(precision === 'calle')
       } else if (data.status === 'otra-comuna') {
         setGeo({ kind: 'otra-comuna', commune: data.result.commune })
@@ -212,15 +225,50 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
     }
   }
 
-  /** Abre el mapa en el centro de la comuna para que la clienta marque su casa. */
+  /** Abre el mapa (en el centro de la comuna si aún no hay punto) para que la clienta busque y marque su casa. */
   const markOnMap = () => {
-    const center = TARAPACA_COMMUNES[customer.city]
-    setCustomer((c) => ({
-      ...c,
-      location: c.location ?? { ...center, label: c.address.trim() || 'Punto marcado en el mapa', precision: 'calle' },
-    }))
+    if (!customer.location) {
+      const center = TARAPACA_COMMUNES[customer.city]
+      setCustomer((c) => ({ ...c, location: { ...center, label: '', precision: 'calle' } }))
+      setMapZoom(15)
+    }
     setGeo({ kind: 'encontrada' })
     setMapOpen(true)
+  }
+
+  /** Sugiere la calle y el número del punto marcado, para quien no recuerda su dirección exacta. */
+  const suggestAddress = async (lat: number, lon: number) => {
+    const seq = ++reverseSeq.current
+    setPointInfo('buscando')
+    try {
+      const res = await fetch('/api/direccion/inversa', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lat, lon }),
+      })
+      const data: { address?: string; label?: string; commune?: string; outsideRegion?: boolean } = await res.json()
+      if (seq !== reverseSeq.current) return
+      if (data.outsideRegion) {
+        setPointInfo('fuera')
+        return
+      }
+      const fillAddress = !!data.address && (!customer.address.trim() || addressFromMap.current)
+      if (fillAddress) addressFromMap.current = true
+      setCustomer((c) => {
+        if (!c.location || c.location.lat !== lat || c.location.lon !== lon) return c
+        const next: CheckoutCustomer = {
+          ...c,
+          city: data.commune && isCommune(data.commune) ? data.commune : c.city,
+          address: fillAddress ? (data.address as string) : c.address,
+          location: { ...c.location, label: data.label || c.location.label },
+        }
+        lastSearch.current = searchKey(next)
+        return next
+      })
+      setPointInfo(data.address ? 'ok' : 'sin-calle')
+    } catch {
+      if (seq === reverseSeq.current) setPointInfo('error')
+    }
   }
 
   const movePin = (lat: number, lon: number) => {
@@ -229,6 +277,33 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
       location: { lat, lon, label: c.location?.label || c.address.trim(), precision: 'manual' },
     }))
     setErrors((e) => ({ ...e, address: undefined }))
+    setLocateError('')
+    void suggestAddress(lat, lon)
+  }
+
+  const useMyLocation = () => {
+    if (!('geolocation' in navigator)) {
+      setLocateError('Tu navegador no permite compartir la ubicación. Márcala tocando el mapa.')
+      return
+    }
+    setLocating(true)
+    setLocateError('')
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocating(false)
+        const { latitude, longitude } = pos.coords
+        if (!inRegion(latitude, longitude)) {
+          setLocateError('Tu ubicación actual está fuera de la Región de Tarapacá. Marca la dirección de entrega tocando el mapa.')
+          return
+        }
+        movePin(latitude, longitude)
+      },
+      () => {
+        setLocating(false)
+        setLocateError('No pudimos obtener tu ubicación. Revisa el permiso de ubicación del navegador o marca tu casa tocando el mapa.')
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 },
+    )
   }
 
   const confirmPin = () => {
@@ -353,7 +428,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
               {(
                 [
                   { value: 'domicilio', icon: Truck, title: 'Envío a domicilio', text: 'Reparto de Gloria en Iquique y Alto Hospicio; courier al resto de Tarapacá.' },
-                  { value: 'retiro', icon: Store, title: PICKUP.title, text: 'En el punto de retiro de Gloria. Coordinas día y hora por WhatsApp.' },
+                  { value: 'retiro', icon: Store, title: PICKUP.title, text: `En ${PICKUP.address}. Coordinas día y hora por WhatsApp.` },
                 ] as const
               ).map(({ value, icon: Icon, title, text }) => (
                 <label
@@ -386,9 +461,21 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
             <div className="flex flex-col gap-1 rounded-xl border bg-card p-4 text-sm sm:col-span-2">
               <p className="flex items-start gap-2 font-medium text-primary">
                 <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
-                {PICKUP.place}
+                <span>
+                  Punto de retiro de Gloria
+                  <span className="block text-base text-foreground">{PICKUP.address}</span>
+                </span>
               </p>
               <p className="text-muted-foreground">{PICKUP.howTo}</p>
+              <a
+                href={PICKUP.mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 flex items-center gap-1.5 self-start text-xs text-primary underline underline-offset-4"
+              >
+                <ExternalLink className="size-3.5" aria-hidden />
+                Ver el punto de retiro en Google Maps
+              </a>
             </div>
           ) : (
           <>
@@ -430,7 +517,17 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                 autoComplete="street-address"
                 placeholder="Calle y número, depto o casa"
                 value={customer.address}
-                onChange={(e) => changeDelivery({ address: e.target.value })}
+                onChange={(e) => {
+                  const address = e.target.value
+                  addressFromMap.current = false
+                  if (customer.location?.precision === 'manual') {
+                    // Ya marcó su casa en el mapa: puede completar la dirección (depto, casa) sin perder el punto.
+                    setCustomer((c) => ({ ...c, address }))
+                    lastSearch.current = searchKey({ ...customer, address })
+                  } else {
+                    changeDelivery({ address })
+                  }
+                }}
                 onBlur={() => void verifyAddress()}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -444,15 +541,25 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
               />
               <button
                 type="button"
-                onClick={() => void verifyAddress()}
+                onClick={() => void verifyAddress(customer, customer.location?.precision === 'manual')}
                 disabled={geo.kind === 'buscando' || customer.address.trim().length < 5}
                 className="flex shrink-0 items-center justify-center gap-2 rounded-lg border border-primary/40 bg-secondary px-4 py-2.5 text-sm font-medium text-secondary-foreground transition hover:bg-secondary/70 disabled:opacity-60"
               >
                 {geo.kind === 'buscando' ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <MapPin className="size-4" aria-hidden />}
-                Buscar en el mapa
+                Buscar dirección
               </button>
             </div>
             {errors.address && <p className="text-xs text-destructive">{errors.address}</p>}
+            {geo.kind === 'idle' && (
+              <button
+                type="button"
+                onClick={markOnMap}
+                className="flex items-center gap-1.5 self-start text-xs font-medium text-primary underline underline-offset-4"
+              >
+                <MapIcon className="size-3.5" aria-hidden />
+                ¿No recuerdas tu dirección exacta? Búscala y márcala en el mapa
+              </button>
+            )}
 
             <div id="address-status" aria-live="polite" className="text-sm">
               {geo.kind === 'buscando' && <p className="text-muted-foreground">Buscando tu dirección…</p>}
@@ -463,8 +570,8 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                     <p className="flex items-start gap-2 text-cta">
                       <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
                       <span>
-                        {location.label === customer.address.trim() || location.label === 'Punto marcado en el mapa'
-                          ? 'Marca tu casa en el mapa: arrastra el pin o toca el lugar exacto.'
+                        {!location.label || location.label === customer.address.trim()
+                          ? 'Recorre el mapa (arrástralo y usa + y −) y toca tu casa para marcarla, o usa tu ubicación actual.'
                           : `Encontramos la calle (${location.label}), pero no el número exacto. Arrastra el pin hasta tu casa o confirma si ya está bien.`}
                       </span>
                     </p>
@@ -488,6 +595,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                       <MapIcon className="size-3.5" aria-hidden />
                       {mapOpen ? 'Ocultar mapa' : 'Ver en el mapa'}
                     </button>
+                    {location.precision !== 'calle' || location.label ? (
                     <a
                       href={googleMapsLink(location.lat, location.lon)}
                       target="_blank"
@@ -497,14 +605,37 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                       <ExternalLink className="size-3.5" aria-hidden />
                       Abrir en Google Maps
                     </a>
+                    ) : null}
                   </div>
 
                   {mapOpen && (
                     <div className="flex flex-col gap-2">
-                      <DeliveryMap lat={location.lat} lon={location.lon} onMove={movePin} />
-                      <p className="text-xs text-muted-foreground">
-                        Si el pin no está en tu casa, arrástralo o toca el lugar correcto: el envío se recalcula solo.
-                      </p>
+                      <DeliveryMap lat={location.lat} lon={location.lon} zoom={mapZoom} onMove={movePin} />
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <button
+                          type="button"
+                          onClick={useMyLocation}
+                          disabled={locating}
+                          className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium disabled:opacity-60"
+                        >
+                          {locating ? <Loader2 className="size-3.5 animate-spin" aria-hidden /> : <LocateFixed className="size-3.5" aria-hidden />}
+                          Usar mi ubicación actual
+                        </button>
+                        <p className="text-xs text-muted-foreground">Toca tu casa en el mapa o arrastra el pin: el envío se recalcula solo.</p>
+                      </div>
+                      {locateError && <p className="text-xs text-destructive">{locateError}</p>}
+                      {pointInfo === 'buscando' && <p className="text-xs text-muted-foreground">Buscando la dirección del punto marcado…</p>}
+                      {pointInfo === 'ok' && (
+                        <p className="text-xs text-primary">
+                          Completamos la dirección con el punto marcado. Revísala y agrega el depto o la casa si corresponde.
+                        </p>
+                      )}
+                      {pointInfo === 'sin-calle' && (
+                        <p className="text-xs text-muted-foreground">
+                          No encontramos el nombre de la calle de ese punto. Si la sabes, escríbela; si no, deja una referencia en las indicaciones.
+                        </p>
+                      )}
+                      {pointInfo === 'fuera' && <p className="text-xs text-destructive">Ese punto está fuera de la Región de Tarapacá.</p>}
                       {location.precision === 'calle' && (
                         <button
                           type="button"
@@ -661,7 +792,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                   : freeEligible && missingForFree === 0
                     ? 'Gratis'
                     : 'Se calcula con tu dirección'}
-              {pickup && <span className="block text-xs text-muted-foreground">Punto de retiro en Alto Hospicio</span>}
+              {pickup && <span className="block text-xs text-muted-foreground">{PICKUP.address}</span>}
               {quote && quote.carrier && !routeLoading && (
                 <span className="block text-xs text-muted-foreground">
                   {`${formatKm(quote.km)} de recorrido · ${quote.carrier === 'gloria' ? 'reparto de Gloria, 24 h hábiles' : 'por courier, 2 a 5 días hábiles'}`}

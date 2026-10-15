@@ -18,7 +18,8 @@ Es el prototipo del proyecto *Plan de Transformación y Adopción de E-Commerce 
   - La dirección se verifica en un mapa de OpenStreetMap, y la clienta puede mover el pin hasta su casa o abrir el punto en Google Maps.
   - La clienta elige entre **envío a domicilio** y **retiro gratis en Alto Hospicio**, en el punto de retiro de Gloria.
   - El envío a domicilio se calcula según la distancia por calle desde donde despacha Gloria, en Alto Hospicio, y se cobra junto con el pedido.
-  - Gloria trabaja desde su casa, así que la página no muestra la dirección exacta del punto de retiro: se coordina por WhatsApp.
+  - El punto de retiro es Av. Esmeralda 2872, Alto Hospicio. Como Gloria trabaja desde su casa, el día y la hora se coordinan antes por WhatsApp.
+  - Quien no recuerda su dirección exacta puede recorrer el mapa y tocar su casa, o usar su ubicación actual. La página sugiere la calle y el número de ese punto.
 - **Flor**, asistente virtual con IA (Gemini). Recomienda productos según la necesidad y el presupuesto, responde dudas de pago, envío y devoluciones, y deriva a Gloria por WhatsApp. Si el servicio de IA no responde, contesta con respuestas de respaldo basadas en el catálogo real.
 - **Comprobante por WhatsApp.** Después de pagar, la clienta le envía a Gloria el detalle del pedido, el envío y el enlace del punto de entrega en Google Maps.
 

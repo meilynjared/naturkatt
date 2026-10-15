@@ -38,14 +38,12 @@ export function inRegion(lat: number, lon: number) {
 
 export type Carrier = 'gloria' | 'courier'
 
-/**
- * Retiro gratis en el punto de retiro de Gloria. Ella trabaja desde su casa, así que la página no muestra el número exacto:
- * se lo entrega a cada clienta por WhatsApp al coordinar el día y la hora.
- */
+/** Retiro gratis en el punto de retiro de Gloria (trabaja desde su casa, por eso el retiro se coordina por WhatsApp). */
 export const PICKUP = {
   title: 'Retiro gratis en Alto Hospicio',
-  place: 'Punto de retiro de Gloria · Alto Hospicio, sector Av. Esmeralda',
-  howTo: 'Coordinas el día y la hora con Gloria por WhatsApp; ella te confirma la dirección exacta. Tu pedido queda listo desde 24 h hábiles después del pago.',
+  address: 'Av. Esmeralda 2872, Alto Hospicio',
+  mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Av.+Esmeralda+2872%2C+Alto+Hospicio%2C+Chile',
+  howTo: 'Coordinas el día y la hora con Gloria por WhatsApp antes de ir. Tu pedido queda listo desde 24 h hábiles después del pago.',
 }
 
 /** Tramos por distancia en kilómetros por calle desde el local. */

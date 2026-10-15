@@ -167,6 +167,50 @@ export async function geocodeAddress(address: string, city: string): Promise<Geo
   return remember(key, outcome)
 }
 
+export type ReverseResult = { address: string; label: string; commune: string }
+
+/**
+ * Dirección aproximada de un punto marcado en el mapa (geocodificación inversa).
+ * Ayuda a la clienta que no recuerda su dirección exacta: marca su casa y la página sugiere la calle y el número.
+ */
+export async function reverseGeocode(lat: number, lon: number): Promise<ReverseResult | null> {
+  const key = `rev:${lat.toFixed(5)},${lon.toFixed(5)}`
+  if (cache.has(key)) return cache.get(key) as ReverseResult | null
+  try {
+    await politeDelay()
+    const item = (await getJson(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&lat=${lat}&lon=${lon}`,
+    )) as NominatimItem & { error?: string }
+    if (!item.error && item.address) {
+      const a = item.address
+      const street = a.road || a.pedestrian || a.footway || a.residential || ''
+      return remember(key, {
+        address: street ? `${street}${a.house_number ? ` ${a.house_number}` : ''}` : '',
+        label: shortLabel(a, item.display_name),
+        commune: communeOf(a),
+      })
+    }
+  } catch (error) {
+    console.error('Nominatim (inversa) no disponible', error)
+  }
+  try {
+    const data = (await getJson(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`)) as { features: PhotonFeature[] }
+    const p = data.features[0]?.properties
+    if (p) {
+      const street = p.street || p.name || ''
+      const place = p.city || p.locality || p.county || ''
+      return remember(key, {
+        address: street ? `${street}${p.housenumber ? ` ${p.housenumber}` : ''}` : '',
+        label: [street && p.housenumber ? `${street} ${p.housenumber}` : street, p.district, place].filter(Boolean).join(', '),
+        commune: COMMUNES.find((c) => [p.city, p.locality, p.county].some((v) => v && normalize(v) === normalize(c))) ?? '',
+      })
+    }
+  } catch (error) {
+    console.error('Photon (inversa) no disponible', error)
+  }
+  return null
+}
+
 /** Distancia por calle desde el local. Si el servicio de rutas no responde, se usa una estimación. */
 export async function routeFromStore(lat: number, lon: number): Promise<RouteQuote> {
   const key = `route:${lat.toFixed(5)},${lon.toFixed(5)}`

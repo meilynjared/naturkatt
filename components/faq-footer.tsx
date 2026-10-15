@@ -8,7 +8,7 @@ const faqs = [
   },
   {
     q: '¿Cuánto demora el envío?',
-    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000; bajo ese monto, el envío se calcula al pagar según la distancia desde donde despacha Gloria, en Alto Hospicio (desde $1.500). Al resto de la Región de Tarapacá (Pozo Almonte, Huara, Pica, Camiña y Colchane) enviamos por courier en 2 a 5 días hábiles con número de seguimiento, desde $5.990 según la distancia. También puedes retirar gratis en el punto de retiro de Gloria en Alto Hospicio, coordinando el día y la hora por WhatsApp.',
+    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000; bajo ese monto, el envío se calcula al pagar según la distancia desde donde despacha Gloria, en Alto Hospicio (desde $1.500). Al resto de la Región de Tarapacá (Pozo Almonte, Huara, Pica, Camiña y Colchane) enviamos por courier en 2 a 5 días hábiles con número de seguimiento, desde $5.990 según la distancia. También puedes retirar gratis en el punto de retiro de Gloria (Av. Esmeralda 2872, Alto Hospicio), coordinando el día y la hora por WhatsApp.',
   },
   {
     q: '¿Puedo devolver un producto?',
