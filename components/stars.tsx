@@ -7,7 +7,7 @@ export function Stars({ rating, className }: { rating: number; className?: strin
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
-          className={cn('size-4', i < Math.round(rating) ? 'fill-amber-500 text-amber-500' : 'text-border')}
+          className={cn('size-4', i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-border')}
           aria-hidden
         />
       ))}
