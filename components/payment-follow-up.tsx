@@ -59,7 +59,9 @@ export function PaymentFollowUp({
             </dl>
           )}
           <p className="mt-4 border-t pt-4 text-sm text-muted-foreground">
-            {`Entrega a ${order.customer.name} en ${order.customer.address}, ${order.customer.city}.`}
+            {order.shipping?.carrier === 'retiro'
+              ? `Retiro por ${order.customer.name} en el punto de retiro de Gloria, Alto Hospicio. Coordina con ella el día y la hora por WhatsApp.`
+              : `Entrega a ${order.customer.name} en ${order.customer.address}, ${order.customer.city}.`}
           </p>
         </div>
       )}

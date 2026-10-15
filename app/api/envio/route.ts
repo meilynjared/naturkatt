@@ -3,7 +3,7 @@ import { inRegion } from '@/lib/shipping'
 
 export const runtime = 'nodejs'
 
-/** Distancia por calle desde el local de Gloria hasta el punto de entrega. El valor del envío se calcula con lib/shipping.ts. */
+/** Distancia por calle desde donde despacha Gloria hasta el punto de entrega. El valor del envío se calcula con lib/shipping.ts. */
 export async function POST(req: Request) {
   const body = (await req.json().catch(() => null)) as { lat?: unknown; lon?: unknown } | null
   const lat = Number(body?.lat)

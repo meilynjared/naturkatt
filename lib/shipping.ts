@@ -11,16 +11,11 @@ import { formatCLP } from './store'
  * más caro en el norte y con recargo en zonas rurales).
  */
 
-export const STORE_LOCATION = {
-  label: 'Av. Esmeralda 2872, Alto Hospicio',
-  lat: -20.266411,
-  lon: -70.107505,
-}
 
 /** Comunas de la Región de Tarapacá, con el centro de cada una para abrir el mapa cuando la dirección no se encuentra. */
 export const TARAPACA_COMMUNES = {
   Iquique: { lat: -20.214, lon: -70.1524 },
-  'Alto Hospicio': { lat: STORE_LOCATION.lat, lon: STORE_LOCATION.lon },
+  'Alto Hospicio': { lat: -20.2672, lon: -70.103 },
   'Pozo Almonte': { lat: -20.2597, lon: -69.7862 },
   Huara: { lat: -19.9959, lon: -69.7707 },
   Pica: { lat: -20.4912, lon: -69.3292 },
@@ -43,9 +38,19 @@ export function inRegion(lat: number, lon: number) {
 
 export type Carrier = 'gloria' | 'courier'
 
+/**
+ * Retiro gratis en el punto de retiro de Gloria. Ella trabaja desde su casa, así que la página no muestra el número exacto:
+ * se lo entrega a cada clienta por WhatsApp al coordinar el día y la hora.
+ */
+export const PICKUP = {
+  title: 'Retiro gratis en Alto Hospicio',
+  place: 'Punto de retiro de Gloria · Alto Hospicio, sector Av. Esmeralda',
+  howTo: 'Coordinas el día y la hora con Gloria por WhatsApp; ella te confirma la dirección exacta. Tu pedido queda listo desde 24 h hábiles después del pago.',
+}
+
 /** Tramos por distancia en kilómetros por calle desde el local. */
 export const SHIPPING_TIERS = [
-  { upToKm: 3, price: 1500, carrier: 'gloria', zone: 'Alto Hospicio, cerca del local' },
+  { upToKm: 3, price: 1500, carrier: 'gloria', zone: 'Alto Hospicio, sector Av. Esmeralda' },
   { upToKm: 6, price: 2000, carrier: 'gloria', zone: 'Alto Hospicio' },
   { upToKm: 10, price: 2500, carrier: 'gloria', zone: 'Alto Hospicio lejano y bajada a Iquique' },
   { upToKm: 14, price: 3500, carrier: 'gloria', zone: 'Iquique centro y norte' },
@@ -119,26 +124,4 @@ export function shippingSummary(q: ShippingQuote) {
 
 export function googleMapsLink(lat: number, lon: number) {
   return `https://www.google.com/maps/search/?api=1&query=${lat.toFixed(6)},${lon.toFixed(6)}`
-}
-
-/** Distancia en línea recta (km). */
-export function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
-  const R = 6371
-  const toRad = (d: number) => (d * Math.PI) / 180
-  const dLat = toRad(b.lat - a.lat)
-  const dLon = toRad(b.lon - a.lon)
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2
-  return 2 * R * Math.asin(Math.sqrt(h))
-}
-
-/**
- * Distancia aproximada por calle cuando el servicio de rutas no responde.
- * Bajar de Alto Hospicio a Iquique obliga a tomar la Ruta A-16, así que el recorrido real es mucho más largo que la línea recta
- * (local → Plaza Prat: 7,5 km en línea recta y 12,9 km por calle). Hacia el interior la ruta es más directa
- * (local → Pozo Almonte: 33,6 km en línea recta y 44,6 km por calle).
- */
-export function estimatedRoadKm(lat: number, lon: number) {
-  const straight = haversineKm(STORE_LOCATION, { lat, lon })
-  const downToIquique = lon < -70.122 && straight < 25
-  return Math.round(straight * (downToIquique ? 1.75 : 1.35) * 10) / 10
 }

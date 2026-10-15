@@ -54,9 +54,9 @@ export function florFallbackReply(rawText: string): string {
     ].join('\n')
   }
 
-  if (has(t, 'envio', 'envia', 'despacho', 'demora', 'llega', 'entrega', 'courier', 'region', 'santiago', 'antofagasta', 'fuera de iquique', 'pozo almonte', 'a pica', 'en pica', 'huara', 'camina', 'colchane')) {
+  if (has(t, 'envio', 'envia', 'despacho', 'demora', 'llega', 'entrega', 'courier', 'region', 'santiago', 'antofagasta', 'fuera de iquique', 'retir', 'pozo almonte', 'a pica', 'en pica', 'huara', 'camina', 'colchane')) {
     return [
-      `En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis en compras sobre ${formatCLP(FREE_SHIPPING_THRESHOLD)}. Bajo ese monto, el envío se calcula al pagar según la distancia desde el local en Alto Hospicio (desde $1.500).`,
+      `En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis en compras sobre ${formatCLP(FREE_SHIPPING_THRESHOLD)}. Bajo ese monto, el envío se calcula al pagar según la distancia desde donde despacha Gloria, en Alto Hospicio (desde $1.500). También puedes retirar gratis en Alto Hospicio coordinando con Gloria.`,
       'Al resto de la Región de Tarapacá (Pozo Almonte, Huara, Pica, Camiña y Colchane) enviamos por courier en 2 a 5 días hábiles, desde $5.990 según la distancia. Por ahora no enviamos a otras regiones.',
       '¿Quieres que te recomiende algo?',
     ].join('\n')

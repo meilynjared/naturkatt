@@ -3,13 +3,10 @@
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef } from 'react'
 import type { Map as LeafletMap, Marker } from 'leaflet'
-import { STORE_LOCATION } from '@/lib/shipping'
 
 const PIN_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="44" viewBox="0 0 34 44" aria-hidden="true">
   <path d="M17 1C8.2 1 1 8 1 16.7 1 28.5 17 43 17 43s16-14.5 16-26.3C33 8 25.8 1 17 1z" fill="var(--cta, #c2410c)" stroke="#fff" stroke-width="2"/>
   <circle cx="17" cy="16.5" r="6" fill="#fff"/></svg>`
-
-const STORE_SVG = `<div style="display:flex;align-items:center;gap:4px;white-space:nowrap;font:600 11px/1 system-ui,sans-serif;color:#fff;background:var(--primary,#166534);padding:4px 7px;border-radius:999px;box-shadow:0 1px 4px rgba(0,0,0,.3)">NaturKatt</div>`
 
 /**
  * Mapa de OpenStreetMap con un pin que la clienta puede mover (arrastrando o tocando el mapa) para marcar el punto exacto de entrega.
@@ -42,11 +39,6 @@ export function DeliveryMap({
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
       }).addTo(map)
 
-      L.marker([STORE_LOCATION.lat, STORE_LOCATION.lon], {
-        icon: L.divIcon({ html: STORE_SVG, className: '', iconSize: [70, 20], iconAnchor: [35, 10] }),
-        keyboard: false,
-        interactive: false,
-      }).addTo(map)
 
       const marker = L.marker([lat, lon], {
         draggable: true,

@@ -1,4 +1,10 @@
-import { COMMUNES, estimatedRoadKm, REGION_AREA, STORE_LOCATION, type DeliveryLocation, type RouteQuote } from './shipping'
+import { COMMUNES, REGION_AREA, type DeliveryLocation, type RouteQuote } from './shipping'
+
+/**
+ * Punto desde donde despacha Gloria (su casa en Alto Hospicio). Solo se usa en el servidor para medir distancias:
+ * no se muestra en la página ni se envía al navegador.
+ */
+const STORE_LOCATION = { lat: -20.266411, lon: -70.107505 }
 
 /**
  * Búsqueda de direcciones y distancias con servicios gratuitos de OpenStreetMap (no requieren clave ni tarjeta):
@@ -177,4 +183,26 @@ export async function routeFromStore(lat: number, lon: number): Promise<RouteQuo
     console.error('Servicio de rutas no disponible; se usa la distancia estimada.', error)
   }
   return { km: estimatedRoadKm(lat, lon), method: 'estimada' }
+}
+
+/** Distancia en línea recta (km). */
+function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
+  const R = 6371
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLon = toRad(b.lon - a.lon)
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
+
+/**
+ * Distancia aproximada por calle cuando el servicio de rutas no responde.
+ * Bajar de Alto Hospicio a Iquique obliga a tomar la Ruta A-16, así que el recorrido real es mucho más largo que la línea recta
+ * (local → Plaza Prat: 7,5 km en línea recta y 12,9 km por calle). Hacia el interior la ruta es más directa
+ * (local → Pozo Almonte: 33,6 km en línea recta y 44,6 km por calle).
+ */
+export function estimatedRoadKm(lat: number, lon: number) {
+  const straight = haversineKm(STORE_LOCATION, { lat, lon })
+  const downToIquique = lon < -70.122 && straight < 25
+  return Math.round(straight * (downToIquique ? 1.75 : 1.35) * 10) / 10
 }

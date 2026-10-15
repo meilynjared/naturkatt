@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { CircleAlert, CircleCheck, CreditCard, ExternalLink, Loader2, Lock, Map as MapIcon, MapPin, MessageCircle } from 'lucide-react'
+import { CircleAlert, CircleCheck, CreditCard, ExternalLink, Loader2, Lock, Map as MapIcon, MapPin, MessageCircle, Store, Truck } from 'lucide-react'
 import { FREE_SHIPPING_THRESHOLD } from '@/lib/catalog'
 import {
   clearPendingCheckout,
@@ -14,7 +14,7 @@ import {
   saveLastOrder,
   type PendingLine,
 } from '@/lib/checkout-storage'
-import { DELIVERY_CITIES, type CheckoutCustomer, type DeliveryCity, type OrderShipping, type PricedLine } from '@/lib/order'
+import { DELIVERY_CITIES, type CheckoutCustomer, type DeliveryCity, type DeliveryMode, type OrderShipping, type PricedLine } from '@/lib/order'
 import { formatChileMobile, isValidChileMobile, PHONE_PREFIX } from '@/lib/phone'
 import {
   DELIVERY_TIME,
@@ -22,6 +22,7 @@ import {
   googleMapsLink,
   isCommune,
   LOCAL_COMMUNES,
+  PICKUP,
   SHIPPING_TIERS,
   TARAPACA_COMMUNES,
   shippingQuote,
@@ -39,6 +40,7 @@ const DeliveryMap = dynamic(() => import('./delivery-map').then((m) => m.Deliver
 const EMPTY_CUSTOMER: CheckoutCustomer = {
   name: '',
   phone: '',
+  delivery: 'domicilio',
   address: '',
   city: 'Iquique',
   notes: '',
@@ -66,6 +68,7 @@ function validate(c: CheckoutCustomer): Errors {
   const errors: Errors = {}
   if (c.name.trim().length < 3) errors.name = 'Escribe tu nombre y apellido.'
   if (!isValidChileMobile(c.phone)) errors.phone = 'Escribe los 8 dígitos de tu celular: +56 9 1234 5678.'
+  if (c.delivery === 'retiro') return errors
   if (c.address.trim().length < 5) errors.address = 'Escribe calle, número y depto o casa.'
   else if (!c.location) errors.address = 'Verifica tu dirección con el botón “Buscar en el mapa” para calcular el envío.'
   else if (c.location.precision === 'calle')
@@ -98,6 +101,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
         ...saved,
         phone: formatChileMobile(saved.phone ?? ''),
         // Antes existía la opción "Otra ciudad": esos datos se piden de nuevo.
+        delivery: saved.delivery === 'retiro' ? 'retiro' : 'domicilio',
         city: known ? saved.city : EMPTY_CUSTOMER.city,
         location: known ? (saved.location ?? null) : null,
       }
@@ -110,8 +114,8 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
     }
   }, [])
 
-  // Distancia por calle desde el local cada vez que cambia el punto de entrega.
-  const loc = customer.location
+  // Distancia por calle desde donde despacha Gloria cada vez que cambia el punto de entrega.
+  const loc = customer.delivery === 'domicilio' ? customer.location : null
   useEffect(() => {
     if (!loc) {
       setRoute(null)
@@ -156,9 +160,10 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
   }
 
   const subtotal = lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0)
-  const quote = route ? shippingQuote(subtotal, route) : null
+  const pickup = customer.delivery === 'retiro'
+  const quote = !pickup && route ? shippingQuote(subtotal, route) : null
   // El envío gratis desde $30.000 es solo para el reparto de Gloria en Iquique y Alto Hospicio.
-  const freeEligible = quote ? quote.carrier === 'gloria' : LOCAL_COMMUNES.includes(customer.city)
+  const freeEligible = !pickup && (quote ? quote.carrier === 'gloria' : LOCAL_COMMUNES.includes(customer.city))
   const total = subtotal + (quote?.fee ?? 0)
   const missingForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
 
@@ -237,14 +242,14 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
     setErrors(found)
     setServerError('')
     if (Object.keys(found).length > 0) {
-      if (found.address && !customer.location) void verifyAddress(customer, true)
+      if (found.address && !pickup && !customer.location) void verifyAddress(customer, true)
       return
     }
-    if (quote?.outsideArea) {
+    if (!pickup && quote?.outsideArea) {
       setServerError('Por ahora solo enviamos dentro de la Región de Tarapacá. Escríbele a Gloria para coordinar.')
       return
     }
-    if (!quote) {
+    if (!pickup && !quote) {
       setServerError('Estamos calculando el envío. Espera un segundo y vuelve a presionar pagar.')
       return
     }
@@ -257,7 +262,9 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           lines: lines.map(({ slug, choices, giftWrap, giftMessage, quantity }) => ({ slug, choices, giftWrap, giftMessage, quantity })),
-          delivery: { city: customer.city, lat: customer.location?.lat, lon: customer.location?.lon },
+          delivery: pickup
+            ? { mode: 'retiro' }
+            : { mode: 'domicilio', city: customer.city, lat: customer.location?.lat, lon: customer.location?.lon },
         }),
       })
       const data: {
@@ -339,6 +346,52 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
               className={`${fieldClass} tabular-nums`}
             />
           </Field>
+
+          <fieldset className="flex flex-col gap-2 sm:col-span-2">
+            <legend className="mb-1.5 text-sm font-medium">¿Cómo quieres recibir tu pedido?</legend>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {(
+                [
+                  { value: 'domicilio', icon: Truck, title: 'Envío a domicilio', text: 'Reparto de Gloria en Iquique y Alto Hospicio; courier al resto de Tarapacá.' },
+                  { value: 'retiro', icon: Store, title: PICKUP.title, text: 'En el punto de retiro de Gloria. Coordinas día y hora por WhatsApp.' },
+                ] as const
+              ).map(({ value, icon: Icon, title, text }) => (
+                <label
+                  key={value}
+                  className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card p-3 transition has-[:checked]:border-primary has-[:checked]:bg-secondary has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+                >
+                  <input
+                    type="radio"
+                    name="delivery"
+                    value={value}
+                    checked={customer.delivery === value}
+                    onChange={() => {
+                      setCustomer((c) => ({ ...c, delivery: value as DeliveryMode }))
+                      setErrors((e) => ({ ...e, address: undefined }))
+                      setServerError('')
+                    }}
+                    className="mt-1 size-4 accent-[var(--primary)]"
+                  />
+                  <Icon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
+                  <span className="flex flex-col">
+                    <span className="text-sm font-semibold">{title}</span>
+                    <span className="text-xs text-muted-foreground">{text}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          {pickup ? (
+            <div className="flex flex-col gap-1 rounded-xl border bg-card p-4 text-sm sm:col-span-2">
+              <p className="flex items-start gap-2 font-medium text-primary">
+                <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
+                {PICKUP.place}
+              </p>
+              <p className="text-muted-foreground">{PICKUP.howTo}</p>
+            </div>
+          ) : (
+          <>
           <Field id="city" label="Comuna (Región de Tarapacá)">
             <select
               id="city"
@@ -506,8 +559,19 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
             </div>
           </div>
 
-          <Field id="notes" label="Indicaciones para la entrega (opcional)" wide>
-            <textarea id="notes" rows={2} maxLength={200} placeholder="Ej: dejar en conserjería, timbre 2" value={customer.notes} onChange={set('notes')} className={`${fieldClass} resize-none`} />
+          </>
+          )}
+
+          <Field id="notes" label={pickup ? 'Comentarios para Gloria (opcional)' : 'Indicaciones para la entrega (opcional)'} wide>
+            <textarea
+              id="notes"
+              rows={2}
+              maxLength={200}
+              placeholder={pickup ? 'Ej: prefiero retirar después de las 18:00' : 'Ej: dejar en conserjería, timbre 2'}
+              value={customer.notes}
+              onChange={set('notes')}
+              className={`${fieldClass} resize-none`}
+            />
           </Field>
         </div>
 
@@ -586,18 +650,21 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
             <dd className="tabular-nums">{formatCLP(subtotal)}</dd>
           </div>
           <div className="flex justify-between gap-4">
-            <dt className="text-muted-foreground">Envío</dt>
+            <dt className="text-muted-foreground">{pickup ? 'Entrega' : 'Envío'}</dt>
             <dd className="text-right tabular-nums">
-              {routeLoading
+              {pickup
+                ? 'Retiro gratis'
+                : routeLoading
                 ? 'Calculando…'
                 : quote
                   ? shippingSummary(quote)
                   : freeEligible && missingForFree === 0
                     ? 'Gratis'
                     : 'Se calcula con tu dirección'}
+              {pickup && <span className="block text-xs text-muted-foreground">Punto de retiro en Alto Hospicio</span>}
               {quote && quote.carrier && !routeLoading && (
                 <span className="block text-xs text-muted-foreground">
-                  {`${formatKm(quote.km)} desde el local · ${quote.carrier === 'gloria' ? 'reparto de Gloria, 24 h hábiles' : 'por courier, 2 a 5 días hábiles'}`}
+                  {`${formatKm(quote.km)} de recorrido · ${quote.carrier === 'gloria' ? 'reparto de Gloria, 24 h hábiles' : 'por courier, 2 a 5 días hábiles'}`}
                 </span>
               )}
             </dd>
@@ -615,7 +682,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
         <details className="mt-3 text-xs text-muted-foreground">
           <summary className="cursor-pointer font-medium text-foreground">¿Cómo se calcula el envío?</summary>
           <p className="mt-2">
-            {`Según la distancia por calle desde el local de Gloria en Alto Hospicio. En Iquique y Alto Hospicio reparte Gloria (gratis en compras desde ${formatCLP(FREE_SHIPPING_THRESHOLD)}); al resto de Tarapacá se envía por courier.`}
+            {`Según la distancia por calle desde donde despacha Gloria, en Alto Hospicio. En Iquique y Alto Hospicio reparte Gloria (gratis en compras desde ${formatCLP(FREE_SHIPPING_THRESHOLD)}); al resto de Tarapacá se envía por courier. También puedes retirar gratis en Alto Hospicio.`}
           </p>
           <table className="mt-2 w-full">
             <tbody>

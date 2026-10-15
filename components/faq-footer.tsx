@@ -1,5 +1,5 @@
 import { Leaf } from 'lucide-react'
-import { CITY, OWNER_NAME, WHATSAPP_DISPLAY, whatsappLink } from '@/lib/store'
+import { CITY, OWNER_EMAIL, OWNER_NAME, WHATSAPP_DISPLAY, whatsappLink } from '@/lib/store'
 
 const faqs = [
   {
@@ -8,7 +8,7 @@ const faqs = [
   },
   {
     q: '¿Cuánto demora el envío?',
-    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000; bajo ese monto, el envío se calcula al pagar según la distancia desde el local en Alto Hospicio (desde $1.500). Al resto de la Región de Tarapacá (Pozo Almonte, Huara, Pica, Camiña y Colchane) enviamos por courier en 2 a 5 días hábiles con número de seguimiento, desde $5.990 según la distancia.',
+    a: 'En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis sobre $30.000; bajo ese monto, el envío se calcula al pagar según la distancia desde donde despacha Gloria, en Alto Hospicio (desde $1.500). Al resto de la Región de Tarapacá (Pozo Almonte, Huara, Pica, Camiña y Colchane) enviamos por courier en 2 a 5 días hábiles con número de seguimiento, desde $5.990 según la distancia. También puedes retirar gratis en el punto de retiro de Gloria en Alto Hospicio, coordinando el día y la hora por WhatsApp.',
   },
   {
     q: '¿Puedo devolver un producto?',
@@ -60,9 +60,16 @@ export function SiteFooter() {
           <address className="text-sm not-italic text-muted-foreground md:text-right">
             <p>{OWNER_NAME}</p>
             <p>{CITY}</p>
-            <a href={whatsappLink('¡Hola Gloria!')} target="_blank" rel="noopener noreferrer" className="underline">
-              {`WhatsApp ${WHATSAPP_DISPLAY}`}
-            </a>
+            <p>
+              <a href={whatsappLink('¡Hola Gloria!')} target="_blank" rel="noopener noreferrer" className="underline">
+                {`WhatsApp ${WHATSAPP_DISPLAY}`}
+              </a>
+            </p>
+            <p>
+              <a href={`mailto:${OWNER_EMAIL}`} className="underline">
+                {OWNER_EMAIL}
+              </a>
+            </p>
           </address>
         </div>
         <div className="mt-8 flex flex-col gap-1 border-t pt-6 text-center text-muted-foreground">
