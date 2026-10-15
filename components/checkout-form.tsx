@@ -17,11 +17,13 @@ import {
 import { DELIVERY_CITIES, type CheckoutCustomer, type DeliveryCity, type OrderShipping, type PricedLine } from '@/lib/order'
 import { formatChileMobile, isValidChileMobile, PHONE_PREFIX } from '@/lib/phone'
 import {
-  CITY_CENTER,
+  DELIVERY_TIME,
   formatKm,
   googleMapsLink,
-  isLocalCity,
+  isCommune,
+  LOCAL_COMMUNES,
   SHIPPING_TIERS,
+  TARAPACA_COMMUNES,
   shippingQuote,
   shippingSummary,
   type DeliveryLocation,
@@ -39,7 +41,6 @@ const EMPTY_CUSTOMER: CheckoutCustomer = {
   phone: '',
   address: '',
   city: 'Iquique',
-  otherCity: '',
   notes: '',
   location: null,
 }
@@ -59,17 +60,15 @@ type GeocodeResponse =
   | { status: 'no-encontrada' | 'sin-servicio' }
   | { error: string }
 
-const cityName = (c: CheckoutCustomer) => (c.city === 'Otra ciudad' ? c.otherCity.trim() : c.city)
-const searchKey = (c: CheckoutCustomer) => `${c.address.trim().toLowerCase()}|${cityName(c).toLowerCase()}`
+const searchKey = (c: CheckoutCustomer) => `${c.address.trim().toLowerCase()}|${c.city.toLowerCase()}`
 
 function validate(c: CheckoutCustomer): Errors {
   const errors: Errors = {}
   if (c.name.trim().length < 3) errors.name = 'Escribe tu nombre y apellido.'
   if (!isValidChileMobile(c.phone)) errors.phone = 'Escribe los 8 dígitos de tu celular: +56 9 1234 5678.'
-  if (c.city === 'Otra ciudad' && c.otherCity.trim().length < 3) errors.otherCity = 'Escribe la ciudad o comuna de entrega.'
   if (c.address.trim().length < 5) errors.address = 'Escribe calle, número y depto o casa.'
-  else if (isLocalCity(c.city) && !c.location) errors.address = 'Verifica tu dirección con el botón “Buscar en el mapa” para calcular el envío.'
-  else if (isLocalCity(c.city) && c.location?.precision === 'calle')
+  else if (!c.location) errors.address = 'Verifica tu dirección con el botón “Buscar en el mapa” para calcular el envío.'
+  else if (c.location.precision === 'calle')
     errors.address = 'Confirma en el mapa el punto exacto de entrega.'
   return errors
 }
@@ -93,7 +92,15 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
     setLines(loadPendingCheckout() ?? [])
     const saved = loadCustomer()
     if (saved) {
-      const restored = { ...EMPTY_CUSTOMER, ...saved, phone: formatChileMobile(saved.phone ?? '') }
+      const known = isCommune(saved.city)
+      const restored: CheckoutCustomer = {
+        ...EMPTY_CUSTOMER,
+        ...saved,
+        phone: formatChileMobile(saved.phone ?? ''),
+        // Antes existía la opción "Otra ciudad": esos datos se piden de nuevo.
+        city: known ? saved.city : EMPTY_CUSTOMER.city,
+        location: known ? (saved.location ?? null) : null,
+      }
       setCustomer(restored)
       setHasSavedData(true)
       if (restored.location) {
@@ -104,7 +111,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
   }, [])
 
   // Distancia por calle desde el local cada vez que cambia el punto de entrega.
-  const loc = isLocalCity(customer.city) ? customer.location : null
+  const loc = customer.location
   useEffect(() => {
     if (!loc) {
       setRoute(null)
@@ -149,8 +156,9 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
   }
 
   const subtotal = lines.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0)
-  const local = isLocalCity(customer.city)
-  const quote = local && route ? shippingQuote(subtotal, route) : null
+  const quote = route ? shippingQuote(subtotal, route) : null
+  // El envío gratis desde $30.000 es solo para el reparto de Gloria en Iquique y Alto Hospicio.
+  const freeEligible = quote ? quote.carrier === 'gloria' : LOCAL_COMMUNES.includes(customer.city)
   const total = subtotal + (quote?.fee ?? 0)
   const missingForFree = Math.max(0, FREE_SHIPPING_THRESHOLD - subtotal)
 
@@ -167,8 +175,8 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
   }
 
   const verifyAddress = async (target: CheckoutCustomer = customer, force = false) => {
-    const city = cityName(target)
-    if (target.address.trim().length < 5 || city.length < 3) return
+    const city = target.city
+    if (target.address.trim().length < 5) return
     const key = searchKey(target)
     if (!force && key === lastSearch.current) return
     lastSearch.current = key
@@ -201,8 +209,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
 
   /** Abre el mapa en el centro de la comuna para que la clienta marque su casa. */
   const markOnMap = () => {
-    if (!isLocalCity(customer.city)) return
-    const center = CITY_CENTER[customer.city]
+    const center = TARAPACA_COMMUNES[customer.city]
     setCustomer((c) => ({
       ...c,
       location: c.location ?? { ...center, label: c.address.trim() || 'Punto marcado en el mapa', precision: 'calle' },
@@ -230,10 +237,14 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
     setErrors(found)
     setServerError('')
     if (Object.keys(found).length > 0) {
-      if (found.address && local && !customer.location) void verifyAddress(customer, true)
+      if (found.address && !customer.location) void verifyAddress(customer, true)
       return
     }
-    if (local && !quote) {
+    if (quote?.outsideArea) {
+      setServerError('Por ahora solo enviamos dentro de la Región de Tarapacá. Escríbele a Gloria para coordinar.')
+      return
+    }
+    if (!quote) {
       setServerError('Estamos calculando el envío. Espera un segundo y vuelve a presionar pagar.')
       return
     }
@@ -328,14 +339,14 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
               className={`${fieldClass} tabular-nums`}
             />
           </Field>
-          <Field id="city" label="Ciudad">
+          <Field id="city" label="Comuna (Región de Tarapacá)">
             <select
               id="city"
               value={customer.city}
               onChange={(e) => {
                 const city = e.target.value as DeliveryCity
                 changeDelivery({ city })
-                if (isLocalCity(city)) void verifyAddress({ ...customer, city, location: null }, true)
+                void verifyAddress({ ...customer, city, location: null }, true)
               }}
               className={fieldClass}
             >
@@ -344,19 +355,17 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
               ))}
             </select>
           </Field>
-          {customer.city === 'Otra ciudad' && (
-            <Field id="otherCity" label="¿Cuál ciudad o comuna?" error={errors.otherCity}>
-              <input
-                id="otherCity"
-                autoComplete="address-level2"
-                value={customer.otherCity}
-                onChange={(e) => changeDelivery({ otherCity: e.target.value })}
-                onBlur={() => void verifyAddress()}
-                aria-invalid={!!errors.otherCity}
-                className={fieldClass}
-              />
-            </Field>
-          )}
+          <p className="self-end pb-3 text-xs text-muted-foreground sm:pb-3.5">
+            ¿Vives fuera de Tarapacá?{' '}
+            <a
+              href={whatsappLink('¡Hola Gloria! Vivo fuera de la Región de Tarapacá y quiero comprar en NaturKatt.')}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary underline underline-offset-4"
+            >
+              Escríbele a Gloria
+            </a>
+          </p>
 
           <div className="flex flex-col gap-1.5 sm:col-span-2">
             <label htmlFor="address" className="text-sm font-medium">
@@ -441,9 +450,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                     <div className="flex flex-col gap-2">
                       <DeliveryMap lat={location.lat} lon={location.lon} onMove={movePin} />
                       <p className="text-xs text-muted-foreground">
-                        {customer.city === 'Otra ciudad'
-                          ? 'Puedes mover el pin para que Gloria vea el lugar exacto.'
-                          : 'Si el pin no está en tu casa, arrástralo o toca el lugar correcto: el envío se recalcula solo.'}
+                        Si el pin no está en tu casa, arrástralo o toca el lugar correcto: el envío se recalcula solo.
                       </p>
                       {location.precision === 'calle' && (
                         <button
@@ -465,14 +472,14 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                     <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
                     <span>
                       {geo.kind === 'otra-comuna'
-                        ? `Encontramos esa dirección en ${geo.commune}, no en ${cityName(customer)}. Revisa la ciudad o la dirección.`
+                        ? `Encontramos esa dirección en ${geo.commune}, no en ${customer.city}. Revisa la comuna o la dirección.`
                         : geo.kind === 'no-encontrada'
-                          ? `No encontramos “${customer.address.trim()}” en ${cityName(customer)}. Revisa el nombre de la calle y el número.`
+                          ? `No encontramos “${customer.address.trim()}” en ${customer.city}. Revisa el nombre de la calle y el número.`
                           : 'El buscador de direcciones no responde en este momento.'}
                     </span>
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {geo.kind === 'otra-comuna' && isLocalCity(geo.commune) && (
+                    {geo.kind === 'otra-comuna' && isCommune(geo.commune) && (
                       <button
                         type="button"
                         onClick={() => {
@@ -482,21 +489,18 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                         }}
                         className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
                       >
-                        {`Cambiar ciudad a ${geo.commune}`}
+                        {`Cambiar comuna a ${geo.commune}`}
                       </button>
                     )}
-                    {local && (
-                      <button
-                        type="button"
-                        onClick={markOnMap}
-                        className="flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-medium"
-                      >
-                        <MapPin className="size-3.5" aria-hidden />
-                        Marcar mi casa en el mapa
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={markOnMap}
+                      className="flex items-center gap-1.5 rounded-full border px-4 py-2 text-xs font-medium"
+                    >
+                      <MapPin className="size-3.5" aria-hidden />
+                      Marcar mi casa en el mapa
+                    </button>
                   </div>
-                  {!local && <p className="text-xs text-muted-foreground">Puedes pagar igual: Gloria confirma la dirección contigo por WhatsApp.</p>}
                 </div>
               )}
             </div>
@@ -584,17 +588,17 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">Envío</dt>
             <dd className="text-right tabular-nums">
-              {!local
-                ? 'Por courier: Gloria te confirma el valor'
-                : routeLoading
-                  ? 'Calculando…'
-                  : quote
-                    ? shippingSummary(quote)
-                    : missingForFree === 0
-                      ? 'Gratis'
-                      : 'Se calcula con tu dirección'}
-              {local && quote && !quote.outsideArea && !routeLoading && (
-                <span className="block text-xs text-muted-foreground">{`${formatKm(quote.km)} desde el local`}</span>
+              {routeLoading
+                ? 'Calculando…'
+                : quote
+                  ? shippingSummary(quote)
+                  : freeEligible && missingForFree === 0
+                    ? 'Gratis'
+                    : 'Se calcula con tu dirección'}
+              {quote && quote.carrier && !routeLoading && (
+                <span className="block text-xs text-muted-foreground">
+                  {`${formatKm(quote.km)} desde el local · ${quote.carrier === 'gloria' ? 'reparto de Gloria, 24 h hábiles' : 'por courier, 2 a 5 días hábiles'}`}
+                </span>
               )}
             </dd>
           </div>
@@ -603,29 +607,31 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
             <dd className="tabular-nums">{formatCLP(total)}</dd>
           </div>
         </dl>
-        {local && missingForFree > 0 && (
+        {freeEligible && missingForFree > 0 && (
           <p className="mt-3 rounded-lg bg-secondary px-3 py-2 text-xs text-secondary-foreground">
             {`Agrega ${formatCLP(missingForFree)} más y el envío en Iquique y Alto Hospicio es gratis.`}
           </p>
         )}
-        {local && (
-          <details className="mt-3 text-xs text-muted-foreground">
-            <summary className="cursor-pointer font-medium text-foreground">¿Cómo se calcula el envío?</summary>
-            <p className="mt-2">
-              {`Según la distancia por calle desde el local de Gloria en Alto Hospicio. Es gratis en compras desde ${formatCLP(FREE_SHIPPING_THRESHOLD)}.`}
-            </p>
-            <table className="mt-2 w-full">
-              <tbody>
-                {SHIPPING_TIERS.map((t, i) => (
-                  <tr key={t.upToKm} className="border-t">
-                    <td className="py-1 pr-2">{`${i === 0 ? 'Hasta' : `${SHIPPING_TIERS[i - 1].upToKm} a`} ${t.upToKm} km`}</td>
-                    <td className="py-1 text-right tabular-nums">{formatCLP(t.price)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </details>
-        )}
+        <details className="mt-3 text-xs text-muted-foreground">
+          <summary className="cursor-pointer font-medium text-foreground">¿Cómo se calcula el envío?</summary>
+          <p className="mt-2">
+            {`Según la distancia por calle desde el local de Gloria en Alto Hospicio. En Iquique y Alto Hospicio reparte Gloria (gratis en compras desde ${formatCLP(FREE_SHIPPING_THRESHOLD)}); al resto de Tarapacá se envía por courier.`}
+          </p>
+          <table className="mt-2 w-full">
+            <tbody>
+              {SHIPPING_TIERS.map((t, i) => (
+                <tr key={t.upToKm} className={t.carrier === 'courier' && SHIPPING_TIERS[i - 1]?.carrier === 'gloria' ? 'border-t-2 border-foreground/20' : 'border-t'}>
+                  <td className="py-1 pr-2">
+                    {`${i === 0 ? 'Hasta' : `${SHIPPING_TIERS[i - 1].upToKm} a`} ${t.upToKm} km`}
+                    <span className="block text-[11px] leading-tight">{t.zone}</span>
+                  </td>
+                  <td className="py-1 text-right align-top tabular-nums">{formatCLP(t.price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="mt-2">{`${DELIVERY_TIME.gloria} hasta 30 km. ${DELIVERY_TIME.courier} más lejos.`}</p>
+        </details>
         <button
           type="button"
           onClick={() => {

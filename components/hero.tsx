@@ -8,7 +8,7 @@ export function Hero() {
       <div className="flex flex-col gap-6">
         <p className="flex w-fit items-center gap-2 rounded-full bg-secondary px-3 py-1 text-sm text-secondary-foreground">
           <MapPin className="size-4" aria-hidden />
-          Desde Iquique para todo Chile
+          Desde Iquique para toda Tarapacá
         </p>
         <h1 className="text-balance font-serif text-4xl leading-tight md:text-6xl">
           Cosmética botánica elegida para ti, con la cercanía de siempre.

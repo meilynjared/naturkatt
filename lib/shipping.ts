@@ -2,10 +2,13 @@ import { FREE_SHIPPING_THRESHOLD } from './catalog'
 import { formatCLP } from './store'
 
 /**
- * Envío a domicilio en Iquique y Alto Hospicio.
- * El costo depende de la distancia por calle entre el local de Gloria y la dirección de entrega,
- * y es gratis en compras desde $30.000. Los tramos se definieron con precios de referencia de
- * tiendas locales (Iquique ↔ Alto Hospicio ≈ $3.500) y de couriers del mismo día (≈ $2.900 por paquete pequeño).
+ * Envíos dentro de la Región de Tarapacá.
+ * El costo depende de la distancia por calle entre el local de Gloria y la dirección de entrega:
+ * - Hasta 30 km (Iquique y Alto Hospicio): reparto de Gloria en 24 h, gratis en compras desde $30.000.
+ * - Más lejos (Pozo Almonte, Huara, Pica, Camiña, Colchane): por courier (Starken, Chilexpress o Correos de Chile).
+ * Los tramos se definieron con precios de referencia de tiendas de Iquique (Iquique ↔ Alto Hospicio ≈ $3.500),
+ * de couriers del mismo día (≈ $2.900 por paquete pequeño) y de couriers regionales ($3.000 a $8.000 por paquete pequeño,
+ * más caro en el norte y con recargo en zonas rurales).
  */
 
 export const STORE_LOCATION = {
@@ -14,34 +17,52 @@ export const STORE_LOCATION = {
   lon: -70.107505,
 }
 
-export const LOCAL_CITIES = ['Iquique', 'Alto Hospicio'] as const
-export type LocalCity = (typeof LOCAL_CITIES)[number]
-export const isLocalCity = (city: string): city is LocalCity => (LOCAL_CITIES as readonly string[]).includes(city)
-
-/** Centro de cada comuna, para abrir el mapa cuando la dirección no se encuentra. */
-export const CITY_CENTER: Record<LocalCity, { lat: number; lon: number }> = {
-  Iquique: { lat: -20.2140, lon: -70.1524 },
+/** Comunas de la Región de Tarapacá, con el centro de cada una para abrir el mapa cuando la dirección no se encuentra. */
+export const TARAPACA_COMMUNES = {
+  Iquique: { lat: -20.214, lon: -70.1524 },
   'Alto Hospicio': { lat: STORE_LOCATION.lat, lon: STORE_LOCATION.lon },
+  'Pozo Almonte': { lat: -20.2597, lon: -69.7862 },
+  Huara: { lat: -19.9959, lon: -69.7707 },
+  Pica: { lat: -20.4912, lon: -69.3292 },
+  Camiña: { lat: -19.313, lon: -69.4267 },
+  Colchane: { lat: -19.2754, lon: -68.6396 },
+} as const
+
+export type Commune = keyof typeof TARAPACA_COMMUNES
+export const COMMUNES = Object.keys(TARAPACA_COMMUNES) as Commune[]
+export const isCommune = (city: string): city is Commune => city in TARAPACA_COMMUNES
+
+/** Comunas con reparto propio de Gloria (y envío gratis desde $30.000). */
+export const LOCAL_COMMUNES: Commune[] = ['Iquique', 'Alto Hospicio']
+
+/** Rectángulo que contiene la Región de Tarapacá. */
+export const REGION_AREA = { south: -21.65, north: -18.93, west: -70.35, east: -68.38 }
+export function inRegion(lat: number, lon: number) {
+  return lat >= REGION_AREA.south && lat <= REGION_AREA.north && lon >= REGION_AREA.west && lon <= REGION_AREA.east
 }
 
-/** Zona de reparto de Gloria (Iquique y Alto Hospicio urbanos). */
-export const SERVICE_AREA = { south: -20.36, north: -20.15, west: -70.2, east: -70.04 }
-export function inServiceArea(lat: number, lon: number) {
-  return lat >= SERVICE_AREA.south && lat <= SERVICE_AREA.north && lon >= SERVICE_AREA.west && lon <= SERVICE_AREA.east
-}
+export type Carrier = 'gloria' | 'courier'
 
 /** Tramos por distancia en kilómetros por calle desde el local. */
 export const SHIPPING_TIERS = [
-  { upToKm: 3, price: 1500, zone: 'Alto Hospicio, cerca del local' },
-  { upToKm: 6, price: 2000, zone: 'Alto Hospicio' },
-  { upToKm: 10, price: 2500, zone: 'Alto Hospicio lejano y bajada a Iquique' },
-  { upToKm: 14, price: 3500, zone: 'Iquique centro y norte' },
-  { upToKm: 18, price: 4000, zone: 'Iquique sur (Cavancha, Playa Brava)' },
-  { upToKm: 22, price: 4500, zone: 'Iquique extremo sur (Bajo Molle)' },
-  { upToKm: 30, price: 5000, zone: 'Sectores alejados' },
-] as const
+  { upToKm: 3, price: 1500, carrier: 'gloria', zone: 'Alto Hospicio, cerca del local' },
+  { upToKm: 6, price: 2000, carrier: 'gloria', zone: 'Alto Hospicio' },
+  { upToKm: 10, price: 2500, carrier: 'gloria', zone: 'Alto Hospicio lejano y bajada a Iquique' },
+  { upToKm: 14, price: 3500, carrier: 'gloria', zone: 'Iquique centro y norte' },
+  { upToKm: 18, price: 4000, carrier: 'gloria', zone: 'Iquique sur (Cavancha, Playa Brava)' },
+  { upToKm: 22, price: 4500, carrier: 'gloria', zone: 'Iquique extremo sur (Bajo Molle)' },
+  { upToKm: 30, price: 5000, carrier: 'gloria', zone: 'Sectores alejados de Iquique y Alto Hospicio' },
+  { upToKm: 60, price: 5990, carrier: 'courier', zone: 'Pozo Almonte, La Tirana' },
+  { upToKm: 100, price: 6990, carrier: 'courier', zone: 'Huara, Pisagua, costa sur de Iquique' },
+  { upToKm: 150, price: 7990, carrier: 'courier', zone: 'Pica, Matilla' },
+  { upToKm: 200, price: 9490, carrier: 'courier', zone: 'Camiña' },
+  { upToKm: 320, price: 10990, carrier: 'courier', zone: 'Colchane y altiplano' },
+] as const satisfies readonly { upToKm: number; price: number; carrier: Carrier; zone: string }[]
 
-export const MAX_LOCAL_KM = SHIPPING_TIERS[SHIPPING_TIERS.length - 1].upToKm
+export const DELIVERY_TIME: Record<Carrier, string> = {
+  gloria: 'Reparto de Gloria en 24 h hábiles',
+  courier: 'Por courier (Starken, Chilexpress o Correos de Chile) en 2 a 5 días hábiles',
+}
 
 export type DeliveryLocation = {
   lat: number
@@ -59,12 +80,13 @@ export type RouteQuote = {
 }
 
 export type ShippingQuote = RouteQuote & {
+  carrier: Carrier | null
   /** Valor del tramo, antes de aplicar el envío gratis. */
   tierPrice: number | null
   /** Lo que se cobra en Webpay. */
   fee: number
   free: boolean
-  /** Fuera de la zona de reparto: Gloria coordina el envío y su valor. */
+  /** Fuera de la Región de Tarapacá: Gloria coordina el envío y su valor. */
   outsideArea: boolean
 }
 
@@ -74,12 +96,13 @@ export function tierFor(km: number) {
 
 export function shippingQuote(subtotal: number, route: RouteQuote): ShippingQuote {
   const tier = tierFor(route.km)
-  const free = subtotal >= FREE_SHIPPING_THRESHOLD
+  const free = !!tier && tier.carrier === 'gloria' && subtotal >= FREE_SHIPPING_THRESHOLD
   return {
     ...route,
+    carrier: tier?.carrier ?? null,
     tierPrice: tier?.price ?? null,
     outsideArea: !tier,
-    free: free && !!tier,
+    free,
     fee: tier && !free ? tier.price : 0,
   }
 }
@@ -89,7 +112,7 @@ export function formatKm(km: number) {
 }
 
 export function shippingSummary(q: ShippingQuote) {
-  if (q.outsideArea) return 'Fuera de la zona de reparto: Gloria te confirma el valor'
+  if (q.outsideArea) return 'Fuera de la zona de envío: Gloria te confirma el valor'
   if (q.free) return 'Gratis'
   return formatCLP(q.fee)
 }
@@ -111,10 +134,11 @@ export function haversineKm(a: { lat: number; lon: number }, b: { lat: number; l
 /**
  * Distancia aproximada por calle cuando el servicio de rutas no responde.
  * Bajar de Alto Hospicio a Iquique obliga a tomar la Ruta A-16, así que el recorrido real es mucho más largo que la línea recta
- * (local → Plaza Prat: 7,5 km en línea recta y 12,9 km por calle).
+ * (local → Plaza Prat: 7,5 km en línea recta y 12,9 km por calle). Hacia el interior la ruta es más directa
+ * (local → Pozo Almonte: 33,6 km en línea recta y 44,6 km por calle).
  */
 export function estimatedRoadKm(lat: number, lon: number) {
   const straight = haversineKm(STORE_LOCATION, { lat, lon })
-  const belowCliff = lon < -70.122
-  return Math.round(straight * (belowCliff ? 1.75 : 1.35) * 10) / 10
+  const downToIquique = lon < -70.122 && straight < 25
+  return Math.round(straight * (downToIquique ? 1.75 : 1.35) * 10) / 10
 }

@@ -16,7 +16,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
       <div className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground sm:text-sm">
-        Envío gratis en Iquique y Alto Hospicio sobre $30.000 · Despacho a todo Chile
+        Envío gratis en Iquique y Alto Hospicio sobre $30.000 · Envíos a toda la Región de Tarapacá
       </div>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5">

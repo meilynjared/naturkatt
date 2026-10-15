@@ -1,6 +1,6 @@
 import { routeFromStore } from '@/lib/geo-server'
 import { DELIVERY_CITIES, priceOrder, type OrderShipping } from '@/lib/order'
-import { inServiceArea, isLocalCity, shippingQuote } from '@/lib/shipping'
+import { inRegion, shippingQuote } from '@/lib/shipping'
 import { newBuyOrder, webpayTransaction } from '@/lib/webpay'
 
 export const runtime = 'nodejs'
@@ -22,22 +22,22 @@ export async function POST(req: Request) {
   // El envío también se calcula aquí, con la ubicación verificada de la entrega.
   const city = String(body.delivery?.city ?? '')
   if (!(DELIVERY_CITIES as readonly string[]).includes(city)) {
-    return Response.json({ error: 'Elige la ciudad de entrega.' }, { status: 400 })
+    return Response.json({ error: 'Elige la comuna de entrega.' }, { status: 400 })
   }
-  let shipping: OrderShipping | null = null
-  if (isLocalCity(city)) {
-    const lat = Number(body.delivery?.lat)
-    const lon = Number(body.delivery?.lon)
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-      return Response.json({ error: 'Verifica tu dirección en el mapa para calcular el envío.' }, { status: 400 })
-    }
-    const route = inServiceArea(lat, lon) ? await routeFromStore(lat, lon) : { km: 999, method: 'estimada' as const }
-    const { fee, km, method, free, outsideArea } = shippingQuote(priced.total, route)
-    shipping = { fee, km, method, free, outsideArea }
+  const lat = Number(body.delivery?.lat)
+  const lon = Number(body.delivery?.lon)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return Response.json({ error: 'Verifica tu dirección en el mapa para calcular el envío.' }, { status: 400 })
+  }
+  const route = inRegion(lat, lon) ? await routeFromStore(lat, lon) : { km: 9999, method: 'estimada' as const }
+  const { fee, km, method, free, outsideArea, carrier } = shippingQuote(priced.total, route)
+  const shipping: OrderShipping = { fee, km, method, free, outsideArea, carrier }
+  if (outsideArea) {
+    return Response.json({ error: 'Por ahora solo enviamos dentro de la Región de Tarapacá. Escríbele a Gloria para coordinar.' }, { status: 400 })
   }
 
   const subtotal = priced.total
-  const total = subtotal + (shipping?.fee ?? 0)
+  const total = subtotal + shipping.fee
   const buyOrder = newBuyOrder()
   const sessionId = crypto.randomUUID()
   const returnUrl = `${new URL(req.url).origin}/api/webpay/retorno`

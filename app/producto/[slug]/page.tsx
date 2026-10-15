@@ -47,20 +47,22 @@ export default async function ProductPage({ params }: PageProps<'/producto/[slug
         </div>
 
         <section className="mx-auto grid max-w-6xl gap-10 px-4 py-8 md:grid-cols-2">
-          <div className="relative aspect-square overflow-hidden rounded-3xl bg-muted md:sticky md:top-24 md:self-start">
-            <Image
-              src={product.image || '/placeholder.svg'}
-              alt={product.name}
-              fill
-              priority
-              sizes="(min-width: 768px) 50vw, 100vw"
-              className="object-cover"
-            />
-            {product.badge && (
-              <span className="absolute left-4 top-4 rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary">
-                {product.badge}
-              </span>
-            )}
+          <div className="md:sticky md:top-24 md:self-start">
+            <div className="relative aspect-square overflow-hidden rounded-3xl bg-muted">
+              <Image
+                src={product.image || '/placeholder.svg'}
+                alt={product.name}
+                fill
+                priority
+                sizes="(min-width: 768px) 50vw, 100vw"
+                className="object-cover"
+              />
+              {product.badge && (
+                <span className="absolute left-4 top-4 rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary">
+                  {product.badge}
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-6">

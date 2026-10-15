@@ -29,7 +29,6 @@ export function PaymentFollowUp({
   const message = order
     ? buildPaidOrderMessage({ buyOrder, authorizationCode, lines: order.lines, total: order.total, customer: order.customer, shipping: order.shipping })
     : `¡Hola Gloria! Acabo de pagar con Webpay en NaturKatt. Orden de compra: ${buyOrder}${authorizationCode ? ` · Autorización: ${authorizationCode}` : ''}`
-  const city = order ? (order.customer.city === 'Otra ciudad' ? order.customer.otherCity : order.customer.city) : ''
 
   return (
     <section className="flex flex-col gap-5">
@@ -51,7 +50,7 @@ export function PaymentFollowUp({
             <dl className="mt-3 flex flex-col gap-1 border-t pt-3 text-sm">
               <div className="flex justify-between gap-4">
                 <dt className="text-muted-foreground">Envío</dt>
-                <dd className="text-right">{shippingLine(order.customer.city, order.shipping)}</dd>
+                <dd className="text-right">{shippingLine(order.shipping)}</dd>
               </div>
               <div className="flex justify-between gap-4 font-semibold">
                 <dt>Total pagado</dt>
@@ -60,7 +59,7 @@ export function PaymentFollowUp({
             </dl>
           )}
           <p className="mt-4 border-t pt-4 text-sm text-muted-foreground">
-            {`Entrega a ${order.customer.name} en ${order.customer.address}, ${city}.`}
+            {`Entrega a ${order.customer.name} en ${order.customer.address}, ${order.customer.city}.`}
           </p>
         </div>
       )}

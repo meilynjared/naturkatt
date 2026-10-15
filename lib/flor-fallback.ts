@@ -49,15 +49,15 @@ export function florFallbackReply(rawText: string): string {
   if (has(t, 'pag', 'webpay', 'tarjeta', 'transferencia', 'efectivo', 'cuota', 'debito', 'credito')) {
     return [
       'Puedes pagar con Webpay (débito, crédito o prepago) directamente en la tienda, en el sitio seguro de Transbank: NaturKatt nunca ve los datos de tu tarjeta.',
-      'Si prefieres transferencia o efectivo contra entrega en Iquique y Alto Hospicio, lo coordinas con Gloria por WhatsApp.',
+      'Si prefieres transferencia o pagar en efectivo al recibir tu pedido en Iquique y Alto Hospicio, lo coordinas con Gloria por WhatsApp.',
       '¿Te ayudo a elegir un producto?',
     ].join('\n')
   }
 
-  if (has(t, 'envio', 'envia', 'despacho', 'demora', 'llega', 'entrega', 'courier', 'region', 'santiago', 'antofagasta', 'fuera de iquique')) {
+  if (has(t, 'envio', 'envia', 'despacho', 'demora', 'llega', 'entrega', 'courier', 'region', 'santiago', 'antofagasta', 'fuera de iquique', 'pozo almonte', 'a pica', 'en pica', 'huara', 'camina', 'colchane')) {
     return [
       `En Iquique y Alto Hospicio entregamos en 24 horas hábiles, gratis en compras sobre ${formatCLP(FREE_SHIPPING_THRESHOLD)}. Bajo ese monto, el envío se calcula al pagar según la distancia desde el local en Alto Hospicio (desde $1.500).`,
-      'Al resto de Chile enviamos por courier en 2 a 5 días hábiles con seguimiento; Gloria te confirma el costo según tu comuna.',
+      'Al resto de la Región de Tarapacá (Pozo Almonte, Huara, Pica, Camiña y Colchane) enviamos por courier en 2 a 5 días hábiles, desde $5.990 según la distancia. Por ahora no enviamos a otras regiones.',
       '¿Quieres que te recomiende algo?',
     ].join('\n')
   }

@@ -1,5 +1,5 @@
 import { routeFromStore } from '@/lib/geo-server'
-import { inServiceArea, MAX_LOCAL_KM } from '@/lib/shipping'
+import { inRegion } from '@/lib/shipping'
 
 export const runtime = 'nodejs'
 
@@ -11,8 +11,8 @@ export async function POST(req: Request) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
     return Response.json({ error: 'Ubicación inválida.' }, { status: 400 })
   }
-  if (!inServiceArea(lat, lon)) {
-    return Response.json({ km: MAX_LOCAL_KM + 1, method: 'estimada' })
+  if (!inRegion(lat, lon)) {
+    return Response.json({ km: 9999, method: 'estimada' })
   }
   return Response.json(await routeFromStore(lat, lon))
 }
