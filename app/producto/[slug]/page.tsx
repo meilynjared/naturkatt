@@ -58,7 +58,7 @@ export default async function ProductPage({ params }: PageProps<'/producto/[slug
                 className="object-cover"
               />
               {product.badge && (
-                <span className="absolute left-4 top-4 rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary">
+                <span className="absolute left-4 top-4 rounded-full bg-background px-3 py-1 text-sm font-semibold text-primary-ink">
                   {product.badge}
                 </span>
               )}
@@ -95,7 +95,7 @@ export default async function ProductPage({ params }: PageProps<'/producto/[slug
                 <ul className="flex flex-col gap-1.5 text-sm">
                   {product.includes.map((i) => (
                     <li key={i} className="flex gap-2">
-                      <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                      <Check className="mt-0.5 size-4 shrink-0 text-primary-ink" aria-hidden />
                       {i}
                     </li>
                   ))}
@@ -110,7 +110,7 @@ export default async function ProductPage({ params }: PageProps<'/producto/[slug
               <ul className="flex flex-col gap-1.5 text-sm text-muted-foreground">
                 {product.benefits.map((b) => (
                   <li key={b} className="flex gap-2">
-                    <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
+                    <Check className="mt-0.5 size-4 shrink-0 text-primary-ink" aria-hidden />
                     {b}
                   </li>
                 ))}

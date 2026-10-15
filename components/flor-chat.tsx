@@ -82,7 +82,7 @@ export function FlorChat({ onClose }: { onClose: () => void }) {
                 key={s}
                 type="button"
                 onClick={() => send(s)}
-                className="rounded-full border border-primary/30 bg-card px-3 py-1.5 text-left text-xs text-primary transition hover:bg-secondary"
+                className="rounded-full border border-primary/30 bg-card px-3 py-1.5 text-left text-xs text-primary-ink transition hover:bg-secondary"
               >
                 {s}
               </button>
@@ -121,7 +121,7 @@ export function FlorChat({ onClose }: { onClose: () => void }) {
           href={whatsappLink('¡Hola Gloria! Estaba hablando con Flor y prefiero que me atiendas tú.')}
           target="_blank"
           rel="noopener noreferrer"
-          className="mb-2 flex items-center justify-center gap-1.5 text-xs font-medium text-primary underline-offset-4 hover:underline"
+          className="mb-2 flex items-center justify-center gap-1.5 text-xs font-medium text-primary-ink underline-offset-4 hover:underline"
         >
           <UserRound className="size-3.5" aria-hidden />
           Prefiero hablar con Gloria

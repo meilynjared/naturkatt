@@ -445,9 +445,9 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                       setErrors((e) => ({ ...e, address: undefined }))
                       setServerError('')
                     }}
-                    className="mt-1 size-4 accent-[var(--primary)]"
+                    className="mt-1 size-4 accent-[var(--primary-ink)]"
                   />
-                  <Icon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
+                  <Icon className="mt-0.5 size-5 shrink-0 text-primary-ink" aria-hidden />
                   <span className="flex flex-col">
                     <span className="text-sm font-semibold">{title}</span>
                     <span className="text-xs text-muted-foreground">{text}</span>
@@ -459,7 +459,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
 
           {pickup ? (
             <div className="flex flex-col gap-1 rounded-xl border bg-card p-4 text-sm sm:col-span-2">
-              <p className="flex items-start gap-2 font-medium text-primary">
+              <p className="flex items-start gap-2 font-medium text-primary-ink">
                 <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
                 <span>
                   Punto de retiro de Gloria
@@ -471,7 +471,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                 href={PICKUP.mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1 flex items-center gap-1.5 self-start text-xs text-primary underline underline-offset-4"
+                className="mt-1 flex items-center gap-1.5 self-start text-xs text-primary-ink underline underline-offset-4"
               >
                 <ExternalLink className="size-3.5" aria-hidden />
                 Ver el punto de retiro en Google Maps
@@ -501,7 +501,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
               href={whatsappLink('¡Hola Gloria! Vivo fuera de la Región de Tarapacá y quiero comprar en NaturKatt.')}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-primary underline underline-offset-4"
+              className="text-primary-ink underline underline-offset-4"
             >
               Escríbele a Gloria
             </a>
@@ -554,7 +554,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
               <button
                 type="button"
                 onClick={markOnMap}
-                className="flex items-center gap-1.5 self-start text-xs font-medium text-primary underline underline-offset-4"
+                className="flex items-center gap-1.5 self-start text-xs font-medium text-primary-ink underline underline-offset-4"
               >
                 <MapIcon className="size-3.5" aria-hidden />
                 ¿No recuerdas tu dirección exacta? Búscala y márcala en el mapa
@@ -576,7 +576,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                       </span>
                     </p>
                   ) : (
-                    <p className="flex items-start gap-2 text-primary">
+                    <p className="flex items-start gap-2 text-primary-ink">
                       <CircleCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
                       <span>
                         {location.precision === 'manual' ? 'Punto de entrega marcado en el mapa' : 'Dirección verificada'}
@@ -590,7 +590,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                       type="button"
                       onClick={() => setMapOpen((o) => !o)}
                       aria-expanded={mapOpen}
-                      className="flex items-center gap-1.5 font-medium text-primary underline underline-offset-4"
+                      className="flex items-center gap-1.5 font-medium text-primary-ink underline underline-offset-4"
                     >
                       <MapIcon className="size-3.5" aria-hidden />
                       {mapOpen ? 'Ocultar mapa' : 'Ver en el mapa'}
@@ -626,7 +626,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
                       {locateError && <p className="text-xs text-destructive">{locateError}</p>}
                       {pointInfo === 'buscando' && <p className="text-xs text-muted-foreground">Buscando la dirección del punto marcado…</p>}
                       {pointInfo === 'ok' && (
-                        <p className="text-xs text-primary">
+                        <p className="text-xs text-primary-ink">
                           Completamos la dirección con el punto marcado. Revísala y agrega el depto o la casa si corresponde.
                         </p>
                       )}
@@ -707,7 +707,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
         </div>
 
         <label className="flex cursor-pointer items-start gap-3 text-sm">
-          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="mt-0.5 size-5 accent-[var(--primary)]" />
+          <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="mt-0.5 size-5 accent-[var(--primary-ink)]" />
           <span>
             Recordar mis datos en este dispositivo para comprar en 1 clic la próxima vez.
             <span className="block text-xs text-muted-foreground">Se guardan solo en tu navegador; puedes desmarcar para no guardarlos.</span>
@@ -753,7 +753,7 @@ export function CheckoutForm({ testMode }: { testMode: boolean }) {
           href={whatsappLink('¡Hola Gloria! Quiero pagar mi pedido de NaturKatt por transferencia o en efectivo al recibirlo.')}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 text-center text-sm text-primary underline underline-offset-4"
+          className="flex items-center justify-center gap-2 text-center text-sm text-primary-ink underline underline-offset-4"
         >
           <MessageCircle className="size-4 shrink-0" aria-hidden />
           ¿Prefieres pagar con transferencia o en efectivo al recibir tu pedido? Coordínalo con Gloria

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="c" x1="32" y1="9" x2="32" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#fdf9ff"/><stop offset="1" stop-color="#9e7cc8"/></linearGradient>
+    <linearGradient id="s" x1="32" y1="18" x2="32" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#f6eefe"/><stop offset="1" stop-color="#8a67b8"/></linearGradient>
+    <linearGradient id="o" x1="32" y1="30" x2="32" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#e6d8f6"/><stop offset="1" stop-color="#6f4f9c"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#c9b3e6"/>
+  <g transform="translate(3.2 1.5) scale(0.9)" stroke="#5a3d85" stroke-width="1.6" stroke-linejoin="round">
+    <path d="M32 47.5C20 48.5 8.5 43 4 31.5C15 29 26 35 32 47.5Z" fill="url(#o)"/>
+    <path d="M32 47.5C44 48.5 55.5 43 60 31.5C49 29 38 35 32 47.5Z" fill="url(#o)"/>
+    <path d="M32 47.5C20.5 42 14.5 31.5 15.5 18.5C25.5 22 31 33 32 47.5Z" fill="url(#s)"/>
+    <path d="M32 47.5C43.5 42 49.5 31.5 48.5 18.5C38.5 22 33 33 32 47.5Z" fill="url(#s)"/>
+    <path d="M32 8.5C40 17.5 42 32 32 47.5C22 32 24 17.5 32 8.5Z" fill="url(#c)"/>
+    <path d="M12 54C18.5 57 25 58 32 58C39 58 45.5 57 52 54" stroke-width="2.6" stroke-linecap="round"/>
+  </g>
+</svg>

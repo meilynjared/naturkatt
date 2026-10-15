@@ -80,7 +80,7 @@ export function PaymentFollowUp({
           <MessageCircle className="size-5" aria-hidden />
           Enviar comprobante a Gloria
         </a>
-        <Link href="/" className="text-sm text-primary underline underline-offset-4">
+        <Link href="/" className="text-sm text-primary-ink underline underline-offset-4">
           Volver a la tienda
         </Link>
       </div>

@@ -15,7 +15,7 @@ export function ReviewsSection({
     <section id="resenas" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-16">
       <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Prueba social</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary-ink">Prueba social</p>
           <h2 className="mt-2 text-balance font-serif text-3xl md:text-4xl">{title}</h2>
         </div>
         <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3">
@@ -48,7 +48,7 @@ export function ReviewsSection({
                   <span className="font-semibold">{review.name}</span>
                   <span className="text-muted-foreground">{` · ${review.city}`}</span>
                 </span>
-                <span className="flex items-center gap-1 text-xs font-medium text-primary">
+                <span className="flex items-center gap-1 text-xs font-medium text-primary-ink">
                   <BadgeCheck className="size-4" aria-hidden />
                   Compra verificada
                 </span>

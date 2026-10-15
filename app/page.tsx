@@ -19,7 +19,7 @@ export default function HomePage() {
         </section>
 
         <section id="kits" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-16">
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Listos para regalar</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary-ink">Listos para regalar</p>
           <h2 className="mt-2 font-serif text-3xl md:text-4xl">Kits de productos</h2>
           <p className="mt-2 max-w-2xl text-muted-foreground">
             Combinaciones pensadas por Gloria para cada ocasión, con ahorro frente a comprar por separado.
@@ -34,7 +34,7 @@ export default function HomePage() {
         <FlorSection />
 
         <section id="productos" className="mx-auto max-w-6xl scroll-mt-28 px-4 py-16">
-          <p className="text-sm font-semibold uppercase tracking-wider text-primary">Favoritos individuales</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-primary-ink">Favoritos individuales</p>
           <h2 className="mt-2 font-serif text-3xl md:text-4xl">Productos</h2>
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {singles.map((p) => (

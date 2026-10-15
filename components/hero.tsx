@@ -26,7 +26,7 @@ export function Hero() {
           </Link>
           <Link
             href="#flor"
-            className="flex items-center gap-2 rounded-full border-2 border-primary px-7 py-3 font-semibold text-primary transition hover:bg-secondary"
+            className="flex items-center gap-2 rounded-full border-2 border-primary px-7 py-3 font-semibold text-primary-ink transition hover:bg-secondary"
           >
             <Sparkles className="size-4" aria-hidden />
             Pide ayuda a Flor
