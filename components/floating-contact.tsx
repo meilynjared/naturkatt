@@ -20,10 +20,11 @@ export function FloatingContact() {
           <button
             type="button"
             onClick={() => openAssistant()}
-            className="flex items-center gap-2 rounded-full bg-primary py-3 pl-3 pr-4 text-sm font-semibold text-primary-foreground shadow-lg transition hover:brightness-110"
+            aria-label="Pregúntale a Flor, asistente virtual"
+            className="flex items-center gap-2 rounded-full bg-primary p-3.5 text-sm font-semibold text-primary-foreground shadow-lg transition hover:brightness-110 sm:py-3 sm:pl-3 sm:pr-4 [html:not(:has([data-buy-bar]))_&]:py-3 [html:not(:has([data-buy-bar]))_&]:pl-3 [html:not(:has([data-buy-bar]))_&]:pr-4"
           >
             <Flower2 className="size-5" aria-hidden />
-            Pregúntale a Flor
+            <span className="hidden sm:inline [html:not(:has([data-buy-bar]))_&]:inline">Pregúntale a Flor</span>
           </button>
           <a
             href={whatsappLink('¡Hola Gloria! Vengo de NaturKatt y tengo una consulta.')}
