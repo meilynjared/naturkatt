@@ -1,5 +1,5 @@
 import { GIFT_WRAP_PRICE, getProduct, type Product } from './catalog'
-import { COMMUNES, DELIVERY_TIME, formatKm, googleMapsLink, type Commune, type DeliveryLocation, type ShippingQuote } from './shipping'
+import { COMMUNES, DELIVERY_TIME, formatKm, googleMapsLink, PICKUP, type Carrier, type Commune, type DeliveryLocation, type ShippingQuote } from './shipping'
 import { formatCLP } from './store'
 
 export type CartItem = {
@@ -89,9 +89,13 @@ export function priceOrder(input: unknown): { lines: PricedLine[]; total: number
 export const DELIVERY_CITIES = COMMUNES
 export type DeliveryCity = Commune
 
+/** domicilio: envío a la dirección de la clienta · retiro: retira gratis en el punto de retiro de Gloria */
+export type DeliveryMode = 'domicilio' | 'retiro'
+
 export type CheckoutCustomer = {
   name: string
   phone: string
+  delivery: DeliveryMode
   address: string
   city: DeliveryCity
   notes: string
@@ -100,13 +104,16 @@ export type CheckoutCustomer = {
 }
 
 /** Envío cobrado junto al pedido. */
-export type OrderShipping = Pick<ShippingQuote, 'fee' | 'km' | 'method' | 'free' | 'outsideArea' | 'carrier'>
+export type OrderShipping = Pick<ShippingQuote, 'fee' | 'km' | 'method' | 'free' | 'outsideArea'> & { carrier: Carrier | 'retiro' | null }
+
+export const PICKUP_SHIPPING: OrderShipping = { fee: 0, km: 0, method: 'ruta', free: true, outsideArea: false, carrier: 'retiro' }
 
 export function shippingLine(shipping?: OrderShipping | null) {
   if (!shipping) return 'Por coordinar con Gloria'
+  if (shipping.carrier === 'retiro') return `${PICKUP.title} (${PICKUP.address})`
   if (shipping.outsideArea) return 'Fuera de la zona de envío: Gloria te confirma el valor'
   const how = shipping.carrier ? ` · ${DELIVERY_TIME[shipping.carrier]}` : ''
-  return `${shipping.free ? 'Gratis' : formatCLP(shipping.fee)} (${formatKm(shipping.km)} desde el local)${how}`
+  return `${shipping.free ? 'Gratis' : formatCLP(shipping.fee)} (${formatKm(shipping.km)} de recorrido)${how}`
 }
 
 /** Mensaje para avisarle a Gloria de un pedido ya pagado con Webpay. */
@@ -128,13 +135,17 @@ export function buildPaidOrderMessage(params: {
     '',
     `Orden de compra: ${buyOrder}${authorizationCode ? ` · Autorización: ${authorizationCode}` : ''}`,
     ...items,
-    `Envío: ${shippingLine(shipping)}`,
+    `${shipping?.carrier === 'retiro' ? 'Entrega' : 'Envío'}: ${shippingLine(shipping)}`,
     `Total pagado: ${formatCLP(total)}`,
     '',
     `Nombre: ${customer.name}`,
     `Teléfono: ${customer.phone}`,
-    `Dirección: ${customer.address}, ${customer.city}`,
-    customer.location ? `Ubicación en el mapa: ${googleMapsLink(customer.location.lat, customer.location.lon)}` : '',
+    ...(shipping?.carrier === 'retiro'
+      ? ['¿Qué día y a qué hora puedo pasar a retirar?']
+      : [
+          `Dirección: ${customer.address.trim() || 'marcada en el mapa'}, ${customer.city}`,
+          customer.location ? `Ubicación en el mapa: ${googleMapsLink(customer.location.lat, customer.location.lon)}` : '',
+        ]),
     customer.notes ? `Indicaciones: ${customer.notes}` : '',
   ]
     .filter((line, i, all) => line !== '' || all[i - 1] !== '')

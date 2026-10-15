@@ -1,11 +1,23 @@
 import { routeFromStore } from '@/lib/geo-server'
-import { DELIVERY_CITIES, priceOrder, type OrderShipping } from '@/lib/order'
+import { DELIVERY_CITIES, PICKUP_SHIPPING, priceOrder, type OrderShipping } from '@/lib/order'
 import { inRegion, shippingQuote } from '@/lib/shipping'
 import { newBuyOrder, webpayTransaction } from '@/lib/webpay'
 
 export const runtime = 'nodejs'
 
-type Delivery = { city?: unknown; lat?: unknown; lon?: unknown }
+type Delivery = { mode?: unknown; city?: unknown; lat?: unknown; lon?: unknown }
+
+async function homeDelivery(delivery: Delivery | undefined, subtotal: number): Promise<OrderShipping | { error: string }> {
+  const city = String(delivery?.city ?? '')
+  if (!(DELIVERY_CITIES as readonly string[]).includes(city)) return { error: 'Elige la comuna de entrega.' }
+  const lat = Number(delivery?.lat)
+  const lon = Number(delivery?.lon)
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return { error: 'Verifica tu dirección en el mapa para calcular el envío.' }
+  const route = inRegion(lat, lon) ? await routeFromStore(lat, lon) : { km: 9999, method: 'estimada' as const }
+  const { fee, km, method, free, outsideArea, carrier } = shippingQuote(subtotal, route)
+  if (outsideArea) return { error: 'Por ahora solo enviamos dentro de la Región de Tarapacá. Escríbele a Gloria para coordinar.' }
+  return { fee, km, method, free, outsideArea, carrier }
+}
 
 export async function POST(req: Request) {
   let body: { lines?: unknown; delivery?: Delivery }
@@ -19,22 +31,9 @@ export async function POST(req: Request) {
   const priced = priceOrder(body.lines)
   if ('error' in priced) return Response.json({ error: priced.error }, { status: 400 })
 
-  // El envío también se calcula aquí, con la ubicación verificada de la entrega.
-  const city = String(body.delivery?.city ?? '')
-  if (!(DELIVERY_CITIES as readonly string[]).includes(city)) {
-    return Response.json({ error: 'Elige la comuna de entrega.' }, { status: 400 })
-  }
-  const lat = Number(body.delivery?.lat)
-  const lon = Number(body.delivery?.lon)
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return Response.json({ error: 'Verifica tu dirección en el mapa para calcular el envío.' }, { status: 400 })
-  }
-  const route = inRegion(lat, lon) ? await routeFromStore(lat, lon) : { km: 9999, method: 'estimada' as const }
-  const { fee, km, method, free, outsideArea, carrier } = shippingQuote(priced.total, route)
-  const shipping: OrderShipping = { fee, km, method, free, outsideArea, carrier }
-  if (outsideArea) {
-    return Response.json({ error: 'Por ahora solo enviamos dentro de la Región de Tarapacá. Escríbele a Gloria para coordinar.' }, { status: 400 })
-  }
+  // El envío también se calcula aquí, con la ubicación verificada de la entrega (o retiro gratis).
+  const shipping = body.delivery?.mode === 'retiro' ? PICKUP_SHIPPING : await homeDelivery(body.delivery, priced.total)
+  if ('error' in shipping) return Response.json({ error: shipping.error }, { status: 400 })
 
   const subtotal = priced.total
   const total = subtotal + shipping.fee

@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { MessageCircle } from 'lucide-react'
 import { clearPendingCheckout, loadLastOrder, type LastOrder } from '@/lib/checkout-storage'
 import { buildPaidOrderMessage, shippingLine } from '@/lib/order'
+import { PICKUP } from '@/lib/shipping'
 import { formatCLP, whatsappLink } from '@/lib/store'
 
 export function PaymentFollowUp({
@@ -59,7 +60,9 @@ export function PaymentFollowUp({
             </dl>
           )}
           <p className="mt-4 border-t pt-4 text-sm text-muted-foreground">
-            {`Entrega a ${order.customer.name} en ${order.customer.address}, ${order.customer.city}.`}
+            {order.shipping?.carrier === 'retiro'
+              ? `Retiro por ${order.customer.name} en el punto de retiro de Gloria (${PICKUP.address}). Coordina con ella el día y la hora por WhatsApp.`
+              : `Entrega a ${order.customer.name} en ${order.customer.address.trim() || 'el punto marcado en el mapa'}, ${order.customer.city}.`}
           </p>
         </div>
       )}

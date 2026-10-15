@@ -2,7 +2,7 @@
 
 Tienda online de **Gloria Ríos Marambio**, consultora Natura independiente de Iquique, con la asistente virtual **Flor**.
 
-**Sitio:** https://naturkatt.vercel.app/
+**Sitio:** https://naturkatt.vercel.app/ · **Contacto:** WhatsApp +56 9 7576 0155 · gloriariosmarambio@gmail.com
 
 Es el prototipo del proyecto *Plan de Transformación y Adopción de E-Commerce Inteligente para una PYME Tradicional*, de la asignatura E-commerce (Ingeniería en Informática, INACAP Sede Iquique). Autora: Meilyn Quispe. Profesor: Ademar Araya.
 
@@ -16,13 +16,18 @@ Es el prototipo del proyecto *Plan de Transformación y Adopción de E-Commerce 
 - **Datos de entrega:**
   - El celular se ordena solo como `+56 9 XXXX XXXX`.
   - La dirección se verifica en un mapa de OpenStreetMap, y la clienta puede mover el pin hasta su casa o abrir el punto en Google Maps.
-  - El envío se calcula según la distancia por calle desde el local (Av. Esmeralda 2872, Alto Hospicio) y se cobra junto con el pedido.
+  - La clienta elige entre **envío a domicilio** y **retiro gratis en Alto Hospicio**, en el punto de retiro de Gloria.
+  - El envío a domicilio se calcula según la distancia por calle desde donde despacha Gloria, en Alto Hospicio, y se cobra junto con el pedido.
+  - El punto de retiro es Av. Esmeralda 2872, Alto Hospicio. Como Gloria trabaja desde su casa, el día y la hora se coordinan antes por WhatsApp.
+  - Quien no recuerda su dirección exacta puede recorrer el mapa y tocar su casa, o usar su ubicación actual. La página sugiere la calle y el número de ese punto.
 - **Flor**, asistente virtual con IA (Gemini). Recomienda productos según la necesidad y el presupuesto, responde dudas de pago, envío y devoluciones, y deriva a Gloria por WhatsApp. Si el servicio de IA no responde, contesta con respuestas de respaldo basadas en el catálogo real.
 - **Comprobante por WhatsApp.** Después de pagar, la clienta le envía a Gloria el detalle del pedido, el envío y el enlace del punto de entrega en Google Maps.
 
 ## Envíos (solo Región de Tarapacá)
 
-| Distancia por calle desde el local | Valor | Cómo se entrega |
+También existe la opción de **retiro gratis** en el punto de retiro de Gloria, en Alto Hospicio.
+
+| Distancia por calle desde Alto Hospicio | Valor | Cómo se entrega |
 |---|---|---|
 | Hasta 3 km | $1.500 | Reparto de Gloria, 24 h hábiles |
 | 3 a 6 km | $2.000 | Reparto de Gloria |

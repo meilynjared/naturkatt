@@ -1,4 +1,10 @@
-import { COMMUNES, estimatedRoadKm, REGION_AREA, STORE_LOCATION, type DeliveryLocation, type RouteQuote } from './shipping'
+import { COMMUNES, REGION_AREA, type DeliveryLocation, type RouteQuote } from './shipping'
+
+/**
+ * Punto desde donde despacha Gloria (su casa en Alto Hospicio). Solo se usa en el servidor para medir distancias:
+ * no se muestra en la página ni se envía al navegador.
+ */
+const STORE_LOCATION = { lat: -20.266411, lon: -70.107505 }
 
 /**
  * Búsqueda de direcciones y distancias con servicios gratuitos de OpenStreetMap (no requieren clave ni tarjeta):
@@ -161,6 +167,50 @@ export async function geocodeAddress(address: string, city: string): Promise<Geo
   return remember(key, outcome)
 }
 
+export type ReverseResult = { address: string; label: string; commune: string }
+
+/**
+ * Dirección aproximada de un punto marcado en el mapa (geocodificación inversa).
+ * Ayuda a la clienta que no recuerda su dirección exacta: marca su casa y la página sugiere la calle y el número.
+ */
+export async function reverseGeocode(lat: number, lon: number): Promise<ReverseResult | null> {
+  const key = `rev:${lat.toFixed(5)},${lon.toFixed(5)}`
+  if (cache.has(key)) return cache.get(key) as ReverseResult | null
+  try {
+    await politeDelay()
+    const item = (await getJson(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&lat=${lat}&lon=${lon}`,
+    )) as NominatimItem & { error?: string }
+    if (!item.error && item.address) {
+      const a = item.address
+      const street = a.road || a.pedestrian || a.footway || a.residential || ''
+      return remember(key, {
+        address: street ? `${street}${a.house_number ? ` ${a.house_number}` : ''}` : '',
+        label: shortLabel(a, item.display_name),
+        commune: communeOf(a),
+      })
+    }
+  } catch (error) {
+    console.error('Nominatim (inversa) no disponible', error)
+  }
+  try {
+    const data = (await getJson(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1`)) as { features: PhotonFeature[] }
+    const p = data.features[0]?.properties
+    if (p) {
+      const street = p.street || p.name || ''
+      const place = p.city || p.locality || p.county || ''
+      return remember(key, {
+        address: street ? `${street}${p.housenumber ? ` ${p.housenumber}` : ''}` : '',
+        label: [street && p.housenumber ? `${street} ${p.housenumber}` : street, p.district, place].filter(Boolean).join(', '),
+        commune: COMMUNES.find((c) => [p.city, p.locality, p.county].some((v) => v && normalize(v) === normalize(c))) ?? '',
+      })
+    }
+  } catch (error) {
+    console.error('Photon (inversa) no disponible', error)
+  }
+  return null
+}
+
 /** Distancia por calle desde el local. Si el servicio de rutas no responde, se usa una estimación. */
 export async function routeFromStore(lat: number, lon: number): Promise<RouteQuote> {
   const key = `route:${lat.toFixed(5)},${lon.toFixed(5)}`
@@ -177,4 +227,26 @@ export async function routeFromStore(lat: number, lon: number): Promise<RouteQuo
     console.error('Servicio de rutas no disponible; se usa la distancia estimada.', error)
   }
   return { km: estimatedRoadKm(lat, lon), method: 'estimada' }
+}
+
+/** Distancia en línea recta (km). */
+function haversineKm(a: { lat: number; lon: number }, b: { lat: number; lon: number }) {
+  const R = 6371
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(b.lat - a.lat)
+  const dLon = toRad(b.lon - a.lon)
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * Math.sin(dLon / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(h))
+}
+
+/**
+ * Distancia aproximada por calle cuando el servicio de rutas no responde.
+ * Bajar de Alto Hospicio a Iquique obliga a tomar la Ruta A-16, así que el recorrido real es mucho más largo que la línea recta
+ * (local → Plaza Prat: 7,5 km en línea recta y 12,9 km por calle). Hacia el interior la ruta es más directa
+ * (local → Pozo Almonte: 33,6 km en línea recta y 44,6 km por calle).
+ */
+export function estimatedRoadKm(lat: number, lon: number) {
+  const straight = haversineKm(STORE_LOCATION, { lat, lon })
+  const downToIquique = lon < -70.122 && straight < 25
+  return Math.round(straight * (downToIquique ? 1.75 : 1.35) * 10) / 10
 }
