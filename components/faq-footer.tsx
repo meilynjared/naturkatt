@@ -49,7 +49,7 @@ export function SiteFooter() {
       <div className="mx-auto max-w-6xl px-4 pt-10 pb-[calc(var(--float-offset)+8.5rem)] lg:pb-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-3">
-            <span className="flex size-11 items-center justify-center rounded-full bg-secondary ring-1 ring-primary/40">
+            <span className="flex size-11 items-center justify-center rounded-full bg-card ring-1 ring-primary/25">
               <LotusIcon id="pie" className="size-8" />
             </span>
             <div>

@@ -1,12 +1,12 @@
 /**
- * Logo de NaturKatt: flor de loto en tonos naranjo y dorado, con pétalos degradados sobre el agua.
+ * Logo de NaturKatt: flor de loto en tonos naranjo y dorado con contorno frambuesa, con pétalos degradados sobre el agua.
  * `id` evita repetir los identificadores de los degradados cuando el logo aparece dos veces en la página (encabezado y pie).
  */
 export function LotusIcon({ className, id = 'nk' }: { className?: string; id?: string }) {
   const c = `${id}-loto-centro`
   const s = `${id}-loto-medio`
   const o = `${id}-loto-exterior`
-  const line = '#9a3d07'
+  const line = '#8a1036'
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
       <defs>
