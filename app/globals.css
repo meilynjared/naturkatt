@@ -29,6 +29,10 @@
   --color-cta: var(--cta);
   --color-cta-foreground: var(--cta-foreground);
   --color-whatsapp: var(--whatsapp);
+  --color-blush: var(--blush);
+  --color-blush-foreground: var(--blush-foreground);
+  --color-sun: var(--sun);
+  --color-sun-foreground: var(--sun-foreground);
   --color-whatsapp-foreground: var(--whatsapp-foreground);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -38,31 +42,35 @@
 
 :root {
   --radius: 0.75rem;
-  /* Paleta inspirada en la de Natura (sistema de diseño GaYa): fondo claro neutro, texto casi negro,
-     naranjo cálido (#f48646) con texto oscuro para botones y destacados, y amarillo dorado como acento. */
-  --background: #fafafa;
+  /* Paleta inspirada en natura.cl: cabecera rosado palo, magenta/frambuesa para destacar,
+     naranjo para comprar, amarillo dorado para la asistente Flor y fondo blanco. */
+  --background: #fdfafb;
   --foreground: #1a1a1a;
   --card: #ffffff;
   --card-foreground: #1a1a1a;
   --popover: #ffffff;
   --popover-foreground: #1a1a1a;
-  --primary: #f48646;
-  --primary-foreground: #111111;
-  --primary-ink: #b4490c;
-  --secondary: #fff1e8;
-  --secondary-foreground: #7a3008;
-  --muted: #f4f4f4;
+  --primary: #b21241;
+  --primary-foreground: #ffffff;
+  --primary-ink: #b21241;
+  --secondary: #fdf0f4;
+  --secondary-foreground: #8a1036;
+  --muted: #f7eff2;
   --muted-foreground: #666666;
-  --accent: #fff6d6;
-  --accent-foreground: #6b5200;
+  --accent: #fbe9ef;
+  --accent-foreground: #8a1036;
   --destructive: #c62a1f;
-  --border: #e1e1e1;
-  --input: #c9c9c9;
-  --ring: #f48646;
+  --border: #eadde2;
+  --input: #d8c6cd;
+  --ring: #b21241;
   --cta: #f48646;
   --cta-foreground: #111111;
-  --whatsapp: #f48646;
-  --whatsapp-foreground: #111111;
+  --blush: #eccdd6;
+  --blush-foreground: #4a1527;
+  --sun: #f5bd02;
+  --sun-foreground: #111111;
+  --whatsapp: #b21241;
+  --whatsapp-foreground: #ffffff;
 }
 
 @layer base {

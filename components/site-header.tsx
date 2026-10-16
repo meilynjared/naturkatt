@@ -15,13 +15,13 @@ const nav = [
 export function SiteHeader() {
   const { count, open } = useCart()
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-blush bg-blush/95 text-blush-foreground backdrop-blur [--muted-foreground:#5c4650]">
       <div className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground sm:text-sm">
         Envío gratis en Iquique y Alto Hospicio sobre $30.000 · Envíos a toda la Región de Tarapacá
       </div>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex size-11 items-center justify-center rounded-full bg-secondary ring-1 ring-primary/40">
+          <span className="flex size-11 items-center justify-center rounded-full bg-card ring-1 ring-primary/25">
             <LotusIcon id="encabezado" className="size-8" />
           </span>
           <span className="flex flex-col leading-none">
