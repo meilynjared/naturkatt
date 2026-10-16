@@ -42,7 +42,7 @@ export function AboutGloria() {
             href={whatsappLink('¡Hola Gloria! Vengo de NaturKatt y quisiera una asesoría.')}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex w-fit items-center gap-2 rounded-full bg-cta px-6 py-3.5 font-semibold text-cta-foreground transition hover:brightness-110"
+            className="flex w-fit items-center gap-2 rounded-full bg-foreground px-6 py-3.5 font-semibold text-background transition hover:opacity-90"
           >
             <MessageCircle className="size-5" aria-hidden />
             {`Escríbeme al ${WHATSAPP_DISPLAY}`}

@@ -1,26 +1,26 @@
 /**
- * Logo de NaturKatt: flor de loto en tonos lila, con pétalos degradados sobre el agua.
+ * Logo de NaturKatt: flor de loto en tonos naranjo y dorado, con pétalos degradados sobre el agua.
  * `id` evita repetir los identificadores de los degradados cuando el logo aparece dos veces en la página (encabezado y pie).
  */
 export function LotusIcon({ className, id = 'nk' }: { className?: string; id?: string }) {
   const c = `${id}-loto-centro`
   const s = `${id}-loto-medio`
   const o = `${id}-loto-exterior`
-  const line = '#5b2a86'
+  const line = '#9a3d07'
   return (
     <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className} aria-hidden="true">
       <defs>
         <linearGradient id={c} x1="32" y1="9" x2="32" y2="47" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#fdf9ff" />
-          <stop offset="1" stopColor="#b56ee8" />
+          <stop stopColor="#fffbea" />
+          <stop offset="1" stopColor="#f6be00" />
         </linearGradient>
         <linearGradient id={s} x1="32" y1="18" x2="32" y2="47" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#fbf3ff" />
-          <stop offset="1" stopColor="#a35ad9" />
+          <stop stopColor="#fff4ea" />
+          <stop offset="1" stopColor="#f7a576" />
         </linearGradient>
         <linearGradient id={o} x1="32" y1="30" x2="32" y2="48" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#f0dcff" />
-          <stop offset="1" stopColor="#8b3dd6" />
+          <stop stopColor="#ffe6d4" />
+          <stop offset="1" stopColor="#e05a0d" />
         </linearGradient>
       </defs>
       {/* pétalos exteriores */}
