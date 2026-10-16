@@ -38,31 +38,31 @@
 
 :root {
   --radius: 0.75rem;
-  /* Paleta lila viva de NaturKatt: fondo lavanda muy claro, lila pastel (#e0b0ff) para destacar,
-     violeta intenso para los botones de compra y rosado suave como acento. */
-  --background: #fcf8ff;
-  --foreground: #2a1f36;
+  /* Paleta inspirada en la de Natura (sistema de diseño GaYa): fondo claro neutro, texto casi negro,
+     naranjo cálido (#f48646) con texto oscuro para botones y destacados, y amarillo dorado como acento. */
+  --background: #fafafa;
+  --foreground: #1a1a1a;
   --card: #ffffff;
-  --card-foreground: #2a1f36;
+  --card-foreground: #1a1a1a;
   --popover: #ffffff;
-  --popover-foreground: #2a1f36;
-  --primary: #e0b0ff;
-  --primary-foreground: #3d1f5c;
-  --primary-ink: #8b3dd6;
-  --secondary: #f5e8ff;
-  --secondary-foreground: #5b2a86;
-  --muted: #f5ecfd;
-  --muted-foreground: #6b5f78;
-  --accent: #ffe4f4;
-  --accent-foreground: #9d2a72;
-  --destructive: #b42318;
-  --border: #ecdcf7;
-  --input: #dcc8ee;
-  --ring: #b070ec;
-  --cta: #9333ea;
-  --cta-foreground: #ffffff;
-  --whatsapp: #e0b0ff;
-  --whatsapp-foreground: #3d1f5c;
+  --popover-foreground: #1a1a1a;
+  --primary: #f48646;
+  --primary-foreground: #111111;
+  --primary-ink: #b4490c;
+  --secondary: #fff1e8;
+  --secondary-foreground: #7a3008;
+  --muted: #f4f4f4;
+  --muted-foreground: #666666;
+  --accent: #fff6d6;
+  --accent-foreground: #6b5200;
+  --destructive: #c62a1f;
+  --border: #e1e1e1;
+  --input: #c9c9c9;
+  --ring: #f48646;
+  --cta: #f48646;
+  --cta-foreground: #111111;
+  --whatsapp: #f48646;
+  --whatsapp-foreground: #111111;
 }
 
 @layer base {

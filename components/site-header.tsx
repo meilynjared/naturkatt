@@ -21,7 +21,7 @@ export function SiteHeader() {
       </div>
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
         <Link href="/" className="flex items-center gap-2.5">
-          <span className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <span className="flex size-11 items-center justify-center rounded-full bg-secondary ring-1 ring-primary/40">
             <LotusIcon id="encabezado" className="size-8" />
           </span>
           <span className="flex flex-col leading-none">

@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="c" x1="32" y1="9" x2="32" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#fdf9ff"/><stop offset="1" stop-color="#b56ee8"/></linearGradient>
-    <linearGradient id="s" x1="32" y1="18" x2="32" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#fbf3ff"/><stop offset="1" stop-color="#a35ad9"/></linearGradient>
-    <linearGradient id="o" x1="32" y1="30" x2="32" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#f0dcff"/><stop offset="1" stop-color="#8b3dd6"/></linearGradient>
+    <linearGradient id="c" x1="32" y1="9" x2="32" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#fffbea"/><stop offset="1" stop-color="#f6be00"/></linearGradient>
+    <linearGradient id="s" x1="32" y1="18" x2="32" y2="47" gradientUnits="userSpaceOnUse"><stop stop-color="#fff4ea"/><stop offset="1" stop-color="#f7a576"/></linearGradient>
+    <linearGradient id="o" x1="32" y1="30" x2="32" y2="48" gradientUnits="userSpaceOnUse"><stop stop-color="#ffe6d4"/><stop offset="1" stop-color="#e05a0d"/></linearGradient>
   </defs>
-  <rect width="64" height="64" rx="16" fill="#e0b0ff"/>
-  <g transform="translate(3.2 1.5) scale(0.9)" stroke="#5b2a86" stroke-width="1.6" stroke-linejoin="round">
+  <rect width="64" height="64" rx="16" fill="#fff1e8"/>
+  <g transform="translate(3.2 1.5) scale(0.9)" stroke="#9a3d07" stroke-width="1.6" stroke-linejoin="round">
     <path d="M32 47.5C20 48.5 8.5 43 4 31.5C15 29 26 35 32 47.5Z" fill="url(#o)"/>
     <path d="M32 47.5C44 48.5 55.5 43 60 31.5C49 29 38 35 32 47.5Z" fill="url(#o)"/>
     <path d="M32 47.5C20.5 42 14.5 31.5 15.5 18.5C25.5 22 31 33 32 47.5Z" fill="url(#s)"/>
